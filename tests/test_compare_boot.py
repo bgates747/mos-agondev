@@ -18,6 +18,12 @@ SPEC.loader.exec_module(compare_boot)
 
 
 class CompareBootTests(unittest.TestCase):
+    def test_default_fab_root_is_project_local(self) -> None:
+        self.assertEqual(
+            compare_boot.DEFAULT_FAB_ROOT,
+            Path(__file__).resolve().parents[1] / "fab-agon-emulator",
+        )
+
     def test_command_set_is_read_only_or_process_local(self) -> None:
         commands = compare_boot.COMMANDS.decode("ascii").splitlines()
         self.assertIn("set PortTest a value with spaces", commands)

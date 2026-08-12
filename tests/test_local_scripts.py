@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 from pathlib import Path
 import subprocess
@@ -11,6 +13,7 @@ import unittest
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 SETUP_SCRIPT = REPOSITORY_ROOT / "scripts" / "setup_local.py"
 PREPARE_SCRIPT = REPOSITORY_ROOT / "scripts" / "prepare_mos_worktree.py"
+PREPARATION_METADATA = ".mos-agondev-worktree.json"
 
 AGONDEV_TOOLS = (
     "agondev-config",
@@ -134,6 +137,29 @@ class LocalScriptTests(unittest.TestCase):
             ["git", "-C", os.fspath(root), "reset", "--", "untracked.txt"],
             check=True,
         )
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                os.fspath(root),
+                "-c",
+                "user.name=mos-agondev tests",
+                "-c",
+                "user.email=mos-agondev-tests@example.invalid",
+                "-c",
+                "commit.gpgsign=false",
+                "commit",
+                "-q",
+                "-m",
+                "fixture",
+            ],
+            check=True,
+            env={
+                **os.environ,
+                "GIT_AUTHOR_DATE": "2000-01-01T00:00:00+00:00",
+                "GIT_COMMITTER_DATE": "2000-01-01T00:00:00+00:00",
+            },
+        )
 
     @staticmethod
     def _run(script: Path, *arguments: object) -> subprocess.CompletedProcess[str]:
@@ -181,6 +207,25 @@ class LocalScriptTests(unittest.TestCase):
         self.assertEqual(agondev_link.resolve(), (self.agondev / "release").resolve())
         self.assertEqual(mos_link.resolve(), self.mos.resolve())
 
+    def test_setup_defaults_to_project_local_dependency_directories(self) -> None:
+        (self.repository / "agondev").symlink_to(
+            self.agondev, target_is_directory=True
+        )
+        (self.repository / "agon-mos").symlink_to(
+            self.mos, target_is_directory=True
+        )
+
+        result = self._run(SETUP_SCRIPT, "--repo-root", self.repository)
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(
+            (self.repository / "toolchains/agondev").resolve(),
+            (self.agondev / "release").resolve(),
+        )
+        self.assertEqual(
+            (self.repository / "upstream/agon-mos").resolve(), self.mos.resolve()
+        )
+
     def test_setup_preflights_both_destinations_before_creating_links(self) -> None:
         collision = self.repository / "upstream" / "agon-mos"
         collision.parent.mkdir()
@@ -227,6 +272,28 @@ class LocalScriptTests(unittest.TestCase):
         self.assertFalse((destination / ".git").exists())
         self.assertFalse((destination / "untracked.txt").exists())
         self.assertEqual((destination / "tracked.bin").read_bytes(), b"\x00preserve\r\n\xff\n")
+
+        metadata = json.loads(
+            (destination / PREPARATION_METADATA).read_text(encoding="utf-8")
+        )
+        head = subprocess.run(
+            ["git", "-C", os.fspath(self.mos), "rev-parse", "HEAD"],
+            check=True,
+            text=True,
+            stdout=subprocess.PIPE,
+        ).stdout.strip()
+        self.assertEqual(metadata["schema"], 1)
+        self.assertEqual(
+            metadata["source"], {"head": head, "tracked_dirty": False}
+        )
+        entries = {entry["path"]: entry for entry in metadata["files"]}
+        self.assertEqual(set(entries), set(source_snapshot))
+        self.assertNotIn(PREPARATION_METADATA, entries)
+        self.assertEqual(
+            entries["main.c"]["sha256"],
+            hashlib.sha256((destination / "main.c").read_bytes()).hexdigest(),
+        )
+        self.assertEqual(entries["tracked.bin"]["executable_bits"], "000")
 
         defines = (destination / "src" / "defines.h").read_bytes()
         self.assertEqual(defines.count(b"extern unsigned char "), 6)
@@ -291,6 +358,38 @@ class LocalScriptTests(unittest.TestCase):
         self.assertEqual(second.returncode, 2)
         self.assertIn("refusing to replace existing destination", second.stderr)
 
+    def test_prepare_records_tracked_dirty_state_but_ignores_untracked_files(self) -> None:
+        (self.mos / "tracked.bin").write_bytes(b"tracked dirty bytes\n")
+        (self.mos / "another-untracked.txt").write_text(
+            "ignored\n", encoding="utf-8"
+        )
+        destination = self.repository / "projects" / "mos-port" / "dirty-worktree"
+
+        result = self._run(
+            PREPARE_SCRIPT,
+            "--root",
+            self.repository,
+            "--source",
+            self.mos,
+            "--destination",
+            destination,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        metadata = json.loads(
+            (destination / PREPARATION_METADATA).read_text(encoding="utf-8")
+        )
+        self.assertTrue(metadata["source"]["tracked_dirty"])
+        self.assertFalse((destination / "untracked.txt").exists())
+        self.assertFalse((destination / "another-untracked.txt").exists())
+        tracked = next(
+            entry for entry in metadata["files"] if entry["path"] == "tracked.bin"
+        )
+        self.assertEqual(
+            tracked["sha256"],
+            hashlib.sha256(b"tracked dirty bytes\n").hexdigest(),
+        )
+
     def test_prepare_rejects_unvalidated_source_before_destination_creation(self) -> None:
         diskio = self.mos / "src_fatfs" / "diskio.c"
         diskio.write_bytes(b"DWORD get_fattime(void) { return 0; }\r\n")
@@ -353,7 +452,15 @@ class LocalScriptTests(unittest.TestCase):
         self.assertEqual(after, before)
 
     def test_prepare_check_rejects_content_extra_missing_mode_and_symlink_drift(self) -> None:
-        mutations = ("content", "extra", "missing", "mode", "symlink")
+        mutations = (
+            "content",
+            "extra",
+            "missing",
+            "mode",
+            "symlink",
+            "metadata-content",
+            "metadata-missing",
+        )
         for mutation in mutations:
             with self.subTest(mutation=mutation):
                 destination = (
@@ -377,10 +484,16 @@ class LocalScriptTests(unittest.TestCase):
                     (destination / "tracked.bin").unlink()
                 elif mutation == "mode":
                     (destination / "tracked.bin").chmod(0o744)
-                else:
+                elif mutation == "symlink":
                     target = destination / "tracked.bin"
                     target.unlink()
                     target.symlink_to(self.mos / "tracked.bin")
+                elif mutation == "metadata-content":
+                    (destination / PREPARATION_METADATA).write_text(
+                        "{}\n", encoding="utf-8"
+                    )
+                else:
+                    (destination / PREPARATION_METADATA).unlink()
 
                 checked = self._run(
                     PREPARE_SCRIPT,

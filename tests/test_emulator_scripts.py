@@ -59,6 +59,13 @@ class EmulatorScriptTests(unittest.TestCase):
         (sdcard / "MOS.bin").write_bytes(b"update-mos")
         (sdcard / "firmware.bin").write_bytes(b"update-vdp")
 
+    def test_defaults_use_project_local_fab_checkout(self) -> None:
+        expected = ROOT / "fab-agon-emulator"
+        self.assertEqual(setup_emulator.DEFAULT_FAB_ROOT, expected)
+        self.assertEqual(verify_emulator.DEFAULT_FAB_ROOT, expected)
+        self.assertEqual(setup_emulator.parse_arguments([]).fab_root, expected)
+        self.assertEqual(verify_emulator.parse_arguments([]).fab_root, expected)
+
     def test_setup_creates_stock_profile_and_verifies_it(self) -> None:
         profile = setup_emulator.setup_profile(self.profile, self.fab_root)
 

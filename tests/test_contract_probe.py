@@ -17,6 +17,26 @@ SPEC.loader.exec_module(verify_contract)
 
 
 class ContractProbeTests(unittest.TestCase):
+    def test_finds_root_and_release_cli_layouts(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            root_cli = root / "agon-cli-emulator"
+            root_cli.write_bytes(b"stub")
+            root_cli.chmod(0o755)
+            self.assertEqual(verify_contract.find_cli(root), root_cli)
+
+            root_cli.unlink()
+            release_cli = root / "target/release/agon-cli-emulator"
+            release_cli.parent.mkdir(parents=True)
+            release_cli.write_bytes(b"stub")
+            release_cli.chmod(0o755)
+            self.assertEqual(verify_contract.find_cli(root), release_cli)
+
+    def test_rejects_missing_cli_layout(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            with self.assertRaisesRegex(verify_contract.ContractError, "missing"):
+                verify_contract.find_cli(Path(temporary))
+
     def test_extracts_only_the_stable_contract_block(self) -> None:
         output = (
             b"transport noise\nCONTRACT-BEGIN\nFORMAT-PRINTF\n"

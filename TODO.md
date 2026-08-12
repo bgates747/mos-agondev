@@ -24,3 +24,8 @@ removed from this file.
   libmos wrapper defects and Fab's 24-bit hostfs object-size write recorded in
   `docs/upstream-findings.md`; upgrade the affected pins, remove local wrapper
   shims, and rerun the ABI/large-file regressions.
+- [ ] **PORT-205** — Make every frozen-study input publicly reproducible:
+  publish or upstream the recorded `agon-mos` VDP-discard commit, and publish
+  the exact path-dependent Fab artifacts or replace their byte hashes with a
+  transparent reproducible-artifact policy. Then rerun `make baseline-check`
+  from only documented public inputs.

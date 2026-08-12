@@ -19,11 +19,27 @@ class ContractError(RuntimeError):
     pass
 
 
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_FAB_ROOT = PROJECT_ROOT / "fab-agon-emulator"
 SPARSE_FIXTURE_SIZE = 0x01020305
 MAX_OUTPUT_BYTES = 1024 * 1024
 TARGET_GOLDEN = re.compile(
     r'TARGET_GOLDEN_PATTERN\(\s*"(?P<pattern>(?:\\.|[^"\\])*)"\s*\)'
 )
+
+
+def find_cli(fab_root: Path) -> Path:
+    candidates = (
+        fab_root / "target/release/agon-cli-emulator",
+        fab_root / "agon-cli-emulator",
+    )
+    for candidate in candidates:
+        if candidate.is_file() and os.access(candidate, os.X_OK):
+            return candidate
+    raise ContractError(
+        "Fab CLI emulator is missing or not executable; checked:\n"
+        + "\n".join(f"  {candidate}" for candidate in candidates)
+    )
 
 
 def digest_file(path: Path) -> str:
@@ -263,12 +279,13 @@ def verify_artifacts(root: Path, objdump: Path) -> None:
 
 
 def main() -> int:
-    project = Path(__file__).resolve().parents[2]
+    project = PROJECT_ROOT
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--fab-root", type=Path, default=DEFAULT_FAB_ROOT)
     parser.add_argument(
         "--cli",
         type=Path,
-        default=project / "../../fab-agon-emulator/target/release/agon-cli-emulator",
+        help="explicit Fab CLI executable (default: discover under --fab-root)",
     )
     parser.add_argument(
         "--candidate",
@@ -296,8 +313,18 @@ def main() -> int:
     )
     args = parser.parse_args()
 
+    try:
+        cli = (
+            args.cli.expanduser().resolve()
+            if args.cli
+            else find_cli(args.fab_root.expanduser().resolve())
+        )
+    except (ContractError, OSError) as error:
+        print(f"verify_contract.py: {error}", file=sys.stderr)
+        return 1
+
     for path, label in (
-        (args.cli, "Fab CLI"),
+        (cli, "Fab CLI"),
         (args.candidate, "candidate MOS"),
         (args.reference, "reference MOS"),
         (args.binary, "contract MOSlet"),
@@ -316,12 +343,12 @@ def main() -> int:
             expected_fixture = fixture_snapshot(sdcard)
             try:
                 candidate = run(
-                    args.cli.resolve(), args.candidate.resolve(), sdcard, args.timeout
+                    cli, args.candidate.resolve(), sdcard, args.timeout
                 )
                 if fixture_snapshot(sdcard) != expected_fixture:
                     raise ContractError("candidate changed the read-only hostfs fixture")
                 reference = run(
-                    args.cli.resolve(), args.reference.resolve(), sdcard, args.timeout
+                    cli, args.reference.resolve(), sdcard, args.timeout
                 )
                 if fixture_snapshot(sdcard) != expected_fixture:
                     raise ContractError("reference changed the read-only hostfs fixture")

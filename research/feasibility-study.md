@@ -1,5 +1,9 @@
 # Feasibility Study: Building Agon MOS with AgonDev
 
+> Historical research snapshot. Use `STARTHERE.md` for current setup,
+> `docs/README.md` for current technical contracts, and `TODO.md` for active
+> work.
+
 > Implementation update (2026-08-12): the recommended path has produced a
 > fully resolved 102,059-byte candidate that boots, mounts Fab directory-backed
 > hostfs through a format-2 ROM descriptor, and passes a limited shell-output
@@ -70,9 +74,9 @@ update above and current development log supersede that historical limitation.
 | Component | Local path | Pinned state |
 |---|---|---|
 | MOS source | `upstream/agon-mos` | `5f67b1ca77eb7a77d3b37cc7b029db51f0d1548e`, branch `fix/vdp-oversize-discard`, clean |
-| AgonDev source | `../../agondev` | `b67ab2444a63267a42193f204889d466765d8dd2`, branch `master`, clean |
-| Fab emulator source | `../../fab-agon-emulator` | `98bbb392b75b196171cc620b60839220e5ce53ed`, tag description `1.2.2`, clean but one commit behind recorded `origin/main` |
-| VDP source reference | `../../agon-vdp` | `c7ac293d2aa81ddfa693390549bcd909069c8fc3`, tag `v2.16.0`, clean |
+| AgonDev source | `agondev` | `b67ab2444a63267a42193f204889d466765d8dd2`, branch `master`, clean |
+| Fab emulator source | `fab-agon-emulator` | `98bbb392b75b196171cc620b60839220e5ce53ed`, tag description `1.2.2`, clean but one commit behind recorded `origin/main` |
+| VDP source reference | `agon-vdp` | `c7ac293d2aa81ddfa693390549bcd909069c8fc3`, tag `v2.16.0`, clean |
 
 The MOS pin is one commit after tag `v3.0.2`; relative to local `main`, it changes
 `src/vdp_protocol.asm` and adds the oversized-packet regression test. The VDP
@@ -228,7 +232,7 @@ GNU numeric forward/backward labels; named locals remain scoped in maintained
 source and receive generated `.L` identities; macro locals use GNU `LOCAL` or
 `\@`. Alternatives, the distinction between one-time migration tools and an
 ongoing supported source language, and the acceptance criteria are specified in
-`assembly-compatibility-strategy.md`.
+`docs/assembly-compatibility-strategy.md`.
 
 ### Finding 4: a custom firmware linker script works and is mandatory
 

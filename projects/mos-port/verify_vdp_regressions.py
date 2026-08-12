@@ -16,6 +16,7 @@ import os
 import re
 import subprocess
 from pathlib import Path
+from typing import Sequence
 
 
 MASK24 = 0xFFFFFF
@@ -468,7 +469,7 @@ def load_zds_reference(binary: Path, linker_map: Path) -> FirmwareImage:
     return FirmwareImage("pinned pre-fix ZDS reference", rom, symbols)
 
 
-def main() -> int:
+def main(argv: Sequence[str] | None = None) -> int:
     root = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -496,7 +497,15 @@ def main() -> int:
         type=Path,
         default=root / "emulator/firmware/mos_platform.map",
     )
-    args = parser.parse_args()
+    parser.add_argument(
+        "--check-reference-negative-control",
+        action="store_true",
+        help=(
+            "also require the exact pinned ZDS reference to reproduce the "
+            "historical stale-length defect"
+        ),
+    )
+    args = parser.parse_args(argv)
 
     try:
         candidate = load_candidate(
@@ -507,15 +516,16 @@ def main() -> int:
         verify_handshake_structure(candidate)
         verify_oversized_packets(candidate)
 
-        reference = load_zds_reference(
-            args.reference_bin.expanduser().resolve(),
-            args.reference_map.expanduser().resolve(),
-        )
-        _require(
-            reproduces_stale_length_bug(reference),
-            "pinned ZDS reference no longer reproduces the expected pre-fix bug; "
-            "refresh the reference contract",
-        )
+        if args.check_reference_negative_control:
+            reference = load_zds_reference(
+                args.reference_bin.expanduser().resolve(),
+                args.reference_map.expanduser().resolve(),
+            )
+            _require(
+                reproduces_stale_length_bug(reference),
+                "pinned ZDS reference no longer reproduces the expected pre-fix bug; "
+                "refresh the reference contract",
+            )
     except (OSError, VdpRegressionError) as error:
         print(f"verify_vdp_regressions.py: {error}", file=os.sys.stderr)
         return 1
@@ -524,10 +534,11 @@ def main() -> int:
         "Linked VDP protocol verified: blocking GP wait precedes the banner; "
         "all oversized lengths 17..255 discard exactly and resume with GP"
     )
-    print(
-        "Pinned ZDS image reproduced the historical stale-length defect as an "
-        "intentional negative control"
-    )
+    if args.check_reference_negative_control:
+        print(
+            "Pinned ZDS image reproduced the historical stale-length defect as an "
+            "intentional negative control"
+        )
     return 0
 
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import json
 from pathlib import Path
@@ -28,6 +29,33 @@ def load_frontend():
 
 
 ZDS = load_frontend()
+
+
+def write_prepared_fixture(root: Path, *, tracked_dirty: bool = False) -> Path:
+    prepared = root / "prepared"
+    unit = prepared / "src" / "unit.asm"
+    unit.parent.mkdir(parents=True)
+    (prepared / "src_startup").mkdir()
+    unit.write_text("SEGMENT CODE\nunit: DB 1\nEND\n", encoding="utf-8")
+    metadata = {
+        "schema": 1,
+        "source": {
+            "head": "a" * 40,
+            "tracked_dirty": tracked_dirty,
+        },
+        "files": [
+            {
+                "path": "src/unit.asm",
+                "sha256": hashlib.sha256(unit.read_bytes()).hexdigest(),
+                "executable_bits": "000",
+            }
+        ],
+    }
+    (prepared / ZDS.PREPARATION_METADATA).write_text(
+        json.dumps(metadata, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    return prepared
 
 
 class Zds2GasUnitTests(unittest.TestCase):
@@ -377,7 +405,65 @@ class Zds2GasObjectTests(unittest.TestCase):
             self.assertEqual(parsed.get(symbol), value, symbol)
 
 
-@unittest.skipUnless(WORKTREE.is_dir(), "prepared MOS worktree is unavailable")
+class Zds2GasPreparedProvenanceTests(unittest.TestCase):
+    def test_tree_uses_validated_dirty_source_identity(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="zds2gas-provenance-") as temporary:
+            root = Path(temporary)
+            prepared = write_prepared_fixture(root, tracked_dirty=True)
+            provenance = ZDS.load_prepared_provenance(prepared)
+            manifest = ZDS.translate_tree(prepared, root / "generated", check=False)
+
+            identity = "a" * 40 + "+tracked-dirty"
+            self.assertEqual(provenance.identity, identity)
+            self.assertEqual(manifest["input_identity"], identity)
+            self.assertEqual(
+                manifest["input_provenance"],
+                {
+                    "metadata": ZDS.PREPARATION_METADATA,
+                    "metadata_sha256": provenance.metadata_sha256,
+                    "prepared_file_count": 1,
+                    "source_head": "a" * 40,
+                    "tracked_dirty": True,
+                },
+            )
+            generated = (root / "generated/src/unit.asm").read_text(encoding="utf-8")
+            self.assertIn(f"; agon-mos input identity: {identity}\n", generated)
+
+    def test_tree_rejects_missing_malformed_and_stale_metadata(self) -> None:
+        mutations = ("missing", "malformed", "content", "mode", "extra")
+        for mutation in mutations:
+            with self.subTest(mutation=mutation), tempfile.TemporaryDirectory(
+                prefix=f"zds2gas-provenance-{mutation}-"
+            ) as temporary:
+                root = Path(temporary)
+                prepared = write_prepared_fixture(root)
+                metadata = prepared / ZDS.PREPARATION_METADATA
+                if mutation == "missing":
+                    metadata.unlink()
+                    message = "metadata is missing"
+                elif mutation == "malformed":
+                    metadata.write_text("{}\n", encoding="utf-8")
+                    message = "wrong fields"
+                elif mutation == "content":
+                    (prepared / "src/unit.asm").write_text(
+                        "SEGMENT CODE\nunit: DB 2\nEND\n", encoding="utf-8"
+                    )
+                    message = "content is stale or modified"
+                elif mutation == "mode":
+                    (prepared / "src/unit.asm").chmod(0o744)
+                    message = "executable bits are stale or modified"
+                else:
+                    (prepared / "extra.txt").write_text("extra\n", encoding="utf-8")
+                    message = "contains extra files"
+
+                with self.assertRaisesRegex(ValueError, message):
+                    ZDS.translate_tree(prepared, root / "generated", check=False)
+
+
+@unittest.skipUnless(
+    (WORKTREE / ZDS.PREPARATION_METADATA).is_file(),
+    "prepared MOS worktree with provenance metadata is unavailable",
+)
 class Zds2GasCorpusTests(unittest.TestCase):
     def test_real_tree_is_deterministic_and_all_units_assemble(self) -> None:
         with tempfile.TemporaryDirectory(prefix="zds2gas-tree-") as temporary:
@@ -389,9 +475,11 @@ class Zds2GasCorpusTests(unittest.TestCase):
             self.assertEqual(first_manifest, second_manifest)
             self.assertEqual(len(first_manifest["files"]), 15)
             self.assertEqual(len(first_manifest["macros"]), 17)
+            provenance = ZDS.load_prepared_provenance(WORKTREE)
+            self.assertEqual(first_manifest["input_identity"], provenance.identity)
             self.assertEqual(
-                first_manifest["input_commit"],
-                "5f67b1ca77eb7a77d3b37cc7b029db51f0d1548e",
+                first_manifest["input_provenance"]["metadata_sha256"],
+                provenance.metadata_sha256,
             )
             self.assertEqual(
                 (first / "manifest.json").read_bytes(),
@@ -404,8 +492,7 @@ class Zds2GasCorpusTests(unittest.TestCase):
                     generated.startswith(
                         "; generated by zds2gas frontend schema 2\n"
                         f"; translation unit: {entry['source']}\n"
-                        "; agon-mos input commit: "
-                        "5f67b1ca77eb7a77d3b37cc7b029db51f0d1548e\n"
+                        f"; agon-mos input identity: {provenance.identity}\n"
                         "; expanded input sha256: "
                     ),
                     entry["source"],

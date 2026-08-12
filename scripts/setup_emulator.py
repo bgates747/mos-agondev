@@ -13,7 +13,7 @@ from typing import Sequence
 
 PROJECT_ROOT = Path(__file__).absolute().parent.parent
 DEFAULT_PROFILE = PROJECT_ROOT / "emulator"
-DEFAULT_FAB_ROOT = PROJECT_ROOT / "../../fab-agon-emulator"
+DEFAULT_FAB_ROOT = PROJECT_ROOT / "fab-agon-emulator"
 DEFAULT_AUTOEXEC = b"SET KEYBOARD 1\r\n"
 
 

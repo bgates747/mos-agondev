@@ -9,8 +9,11 @@ remain unchanged.
 from __future__ import annotations
 
 import argparse
+import hashlib
+import json
 import os
 from pathlib import Path, PurePosixPath
+import re
 import shutil
 import stat
 import subprocess
@@ -19,6 +22,9 @@ from typing import Callable, Sequence
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
+PREPARATION_METADATA = ".mos-agondev-worktree.json"
+PREPARATION_SCHEMA = 1
+GIT_OBJECT_RE = re.compile(r"[0-9a-f]{40}|[0-9a-f]{64}")
 
 PATCHED_PATHS = (
     "src/defines.h",
@@ -124,6 +130,100 @@ def _safe_tracked_paths(upstream: Path) -> list[PurePosixPath]:
         result.append(relative)
 
     return sorted(result, key=PurePosixPath.as_posix)
+
+
+def _source_identity(upstream: Path) -> tuple[str, bool]:
+    """Return the source commit and tracked-only dirty state."""
+
+    head = os.fsdecode(
+        _run_git(upstream, ("rev-parse", "--verify", "HEAD^{commit}"))
+    ).strip()
+    if GIT_OBJECT_RE.fullmatch(head) is None:
+        raise PreparationError(f"git returned an invalid source HEAD: {head!r}")
+    tracked_dirty = bool(
+        _run_git(
+            upstream,
+            (
+                "status",
+                "--porcelain=v1",
+                "--untracked-files=no",
+                "--ignore-submodules=none",
+                "--",
+            ),
+        )
+    )
+    return head, tracked_dirty
+
+
+def _sha256(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def _executable_bits(path: Path) -> str:
+    return f"{stat.S_IMODE(path.stat().st_mode) & 0o111:03o}"
+
+
+def _prepared_file_bytes(
+    upstream: Path,
+    relative: PurePosixPath,
+    patched_bytes: dict[str, bytes],
+) -> bytes:
+    relative_name = relative.as_posix()
+    return patched_bytes.get(
+        relative_name,
+        upstream.joinpath(*relative.parts).read_bytes(),
+    )
+
+
+def _preparation_metadata_bytes(
+    upstream: Path,
+    tracked: Sequence[PurePosixPath],
+    patched_bytes: dict[str, bytes],
+) -> bytes:
+    """Describe the exact prepared tracked-file snapshot deterministically."""
+
+    head, tracked_dirty = _source_identity(upstream)
+    document = {
+        "schema": PREPARATION_SCHEMA,
+        "source": {
+            "head": head,
+            "tracked_dirty": tracked_dirty,
+        },
+        "files": [
+            {
+                "path": relative.as_posix(),
+                "sha256": _sha256(
+                    _prepared_file_bytes(upstream, relative, patched_bytes)
+                ),
+                "executable_bits": _executable_bits(
+                    upstream.joinpath(*relative.parts)
+                ),
+            }
+            for relative in tracked
+        ],
+    }
+    return (json.dumps(document, indent=2, sort_keys=True) + "\n").encode("utf-8")
+
+
+def _verify_written_snapshot(destination: Path, metadata_bytes: bytes) -> None:
+    """Prove the completed copy still matches its pre-copy metadata."""
+
+    document = json.loads(metadata_bytes)
+    for entry in document["files"]:
+        relative = PurePosixPath(entry["path"])
+        target = destination.joinpath(*relative.parts)
+        if _sha256(target.read_bytes()) != entry["sha256"]:
+            raise PreparationError(
+                f"post-copy content verification failed: {entry['path']}"
+            )
+        if _executable_bits(target) != entry["executable_bits"]:
+            raise PreparationError(
+                f"post-copy executable-mode verification failed: {entry['path']}"
+            )
+    if (destination / PREPARATION_METADATA).read_bytes() != metadata_bytes:
+        raise PreparationError(
+            f"post-copy metadata verification failed: {PREPARATION_METADATA}"
+        )
 
 
 def _replace_exact(
@@ -447,12 +547,17 @@ def prepare_worktree(
 
     tracked = _safe_tracked_paths(upstream)
     tracked_names = {path.as_posix() for path in tracked}
+    if PREPARATION_METADATA in tracked_names:
+        raise PreparationError(
+            f"upstream tracks reserved preparation metadata path: {PREPARATION_METADATA}"
+        )
     missing_patch_sources = sorted(set(PATCHED_PATHS) - tracked_names)
     if missing_patch_sources:
         raise PreparationError(
             "required patch files are not tracked: " + ", ".join(missing_patch_sources)
         )
     patched_bytes = _validated_patch_bytes(upstream)
+    metadata_bytes = _preparation_metadata_bytes(upstream, tracked, patched_bytes)
 
     _safe_destination_parent(repository_root, destination.parent)
     try:
@@ -473,15 +578,19 @@ def prepare_worktree(
                 shutil.copystat(source, target, follow_symlinks=False)
             else:
                 shutil.copy2(source, target, follow_symlinks=False)
+        (destination / PREPARATION_METADATA).write_bytes(metadata_bytes)
     except Exception as exc:
         raise PreparationError(
             f"copy failed; partial destination retained at {destination}: {exc}"
         ) from exc
 
-    for relative_name, expected in patched_bytes.items():
-        actual = destination.joinpath(*PurePosixPath(relative_name).parts).read_bytes()
-        if actual != expected:
-            raise PreparationError(f"post-copy verification failed: {relative_name}")
+    final_metadata = _preparation_metadata_bytes(upstream, tracked, patched_bytes)
+    if final_metadata != metadata_bytes:
+        raise PreparationError(
+            "source changed while it was being prepared; partial destination "
+            f"retained at {destination}"
+        )
+    _verify_written_snapshot(destination, metadata_bytes)
     return len(tracked)
 
 
@@ -512,12 +621,17 @@ def check_worktree(
 
     tracked = _safe_tracked_paths(upstream)
     tracked_names = {path.as_posix() for path in tracked}
+    if PREPARATION_METADATA in tracked_names:
+        raise PreparationError(
+            f"upstream tracks reserved preparation metadata path: {PREPARATION_METADATA}"
+        )
     missing_patch_sources = sorted(set(PATCHED_PATHS) - tracked_names)
     if missing_patch_sources:
         raise PreparationError(
             "required patch files are not tracked: " + ", ".join(missing_patch_sources)
         )
     patched_bytes = _validated_patch_bytes(upstream)
+    expected_metadata = _preparation_metadata_bytes(upstream, tracked, patched_bytes)
 
     actual_names: set[str] = set()
     for path in sorted(destination.rglob("*")):
@@ -531,8 +645,9 @@ def check_worktree(
             raise PreparationError(f"destination contains non-regular file: {relative_name}")
         actual_names.add(relative_name)
 
-    missing = sorted(tracked_names - actual_names)
-    extra = sorted(actual_names - tracked_names)
+    expected_names = tracked_names | {PREPARATION_METADATA}
+    missing = sorted(expected_names - actual_names)
+    extra = sorted(actual_names - expected_names)
     if missing:
         raise PreparationError("destination is missing tracked files: " + ", ".join(missing))
     if extra:
@@ -554,6 +669,11 @@ def check_worktree(
                 f"destination executable mode differs: {relative_name} "
                 f"(expected {expected_mode:o}, found {actual_mode:o})"
             )
+    metadata_path = destination / PREPARATION_METADATA
+    if metadata_path.read_bytes() != expected_metadata:
+        raise PreparationError(
+            f"destination preparation metadata differs: {PREPARATION_METADATA}"
+        )
     return len(tracked)
 
 

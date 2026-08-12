@@ -11,7 +11,7 @@ PYTHON ?= $(abspath ../../.venv/bin/python)
 ZDS2GAS := tools/zds2gas.py
 ASSEMBLE_ZDS := tools/assemble_zds.py
 GENERATED := generated
-BASELINE := ../../evidence/baseline.json
+PREPARATION_METADATA := $(UPSTREAM)/.mos-agondev-worktree.json
 
 CPPFLAGS := -Iinclude -I$(UPSTREAM)/src -I$(UPSTREAM)/src_fatfs \
 	-I$(UPSTREAM)/src_startup -I$(UPSTREAM)/src_umm_malloc \
@@ -75,23 +75,26 @@ FIRMWARE_HEX := bin/MOS.hex
 
 .DEFAULT_GOAL := firmware
 
-.PHONY: c-objects c-compat asm-sources asm-objects all-objects runtime firmware verify-firmware clean report
-c-objects: $(C_OBJECTS)
+.PHONY: provenance-check c-objects c-compat asm-sources asm-objects all-objects runtime firmware verify-firmware clean report
+provenance-check:
+	$(PYTHON) -B $(ZDS2GAS) provenance $(UPSTREAM)
+
+c-objects: provenance-check $(C_OBJECTS)
 
 c-compat: c-objects
 	$(PYTHON) -B verify_c_compat.py --toolchain $(TOOLCHAIN) \
 		--worktree $(UPSTREAM) --object-dir obj
 
-asm-sources: $(GENERATED)/manifest.json
+asm-sources: $(GENERATED)/manifest.json provenance-check
 
-asm-objects: $(ASM_OBJECTS)
+asm-objects: provenance-check $(ASM_OBJECTS)
 
 all-objects: c-objects asm-objects
 
 runtime: c-objects
 	$(MAKE) -C runtime runtime-archive
 
-firmware: $(FIRMWARE_BIN) $(FIRMWARE_HEX) verify-firmware
+firmware: provenance-check $(FIRMWARE_BIN) $(FIRMWARE_HEX) verify-firmware
 
 verify-firmware: $(FIRMWARE_ELF) $(FIRMWARE_BIN)
 	$(PYTHON) -B verify_firmware.py $(FIRMWARE_ELF) $(FIRMWARE_BIN) --toolbin $(TOOLBIN)
@@ -104,7 +107,11 @@ obj/%.o: $(UPSTREAM)/%.c $(C_HEADERS)
 # -Os is a verified compiler workaround and supersedes the earlier option.
 obj/src_fatfs/ff.o: CFLAGS += -Os
 
-$(GENERATED)/manifest.json: $(ZDS2GAS) $(BASELINE) $(ASM_INPUTS)
+# Validation must finish before any prepared-source object recipe can run,
+# including under a direct parallel sub-make.
+$(C_OBJECTS) $(ASM_OBJECTS) $(GENERATED)/manifest.json: | provenance-check
+
+$(GENERATED)/manifest.json: $(ZDS2GAS) $(PREPARATION_METADATA) $(ASM_INPUTS)
 	$(PYTHON) -B $(ZDS2GAS) tree $(UPSTREAM) $(GENERATED)
 
 obj/asm/%.o: $(GENERATED)/%.asm $(GENERATED)/manifest.json $(ASSEMBLE_ZDS)

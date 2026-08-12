@@ -3,8 +3,8 @@
 
 from __future__ import annotations
 
-import json
-import hashlib
+import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -18,30 +18,16 @@ def require(condition: bool, message: str) -> None:
         raise SystemExit(message)
 
 
-def git_commit(repository: Path) -> str:
-    return subprocess.run(
-        ["git", "-C", str(repository), "rev-parse", "HEAD"],
-        check=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-    ).stdout.strip()
-
-
-def sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        for block in iter(lambda: stream.read(1024 * 1024), b""):
-            digest.update(block)
-    return digest.hexdigest()
-
-
 def main() -> None:
     expected_python_root = (ROOT / ".venv").resolve()
     executable = Path(sys.executable).absolute()
     require(
         Path(sys.prefix).resolve() == expected_python_root,
         f"Use the project interpreter, not {executable}",
+    )
+    require(
+        sys.version_info >= (3, 14),
+        f"Python 3.14 or newer is required, not {sys.version.split()[0]}",
     )
 
     agondev_link = ROOT / "toolchains/agondev"
@@ -67,37 +53,17 @@ def main() -> None:
     require((worktree / "main.c").is_file(), "Run scripts/prepare_mos_worktree.py")
     require((worktree / "src/defines.h").is_file(), "Incomplete MOS probe worktree")
 
-    baseline = json.loads((ROOT / "evidence/baseline.json").read_text(encoding="utf-8"))
-    require(
-        git_commit(mos) == baseline["repositories"]["agon_mos"]["commit"],
-        "The local agon-mos commit differs from the audited baseline",
-    )
-    # The installed link points at release/, while the evidence records its repo.
-    require(
-        git_commit(agondev.parent) == baseline["repositories"]["agondev"]["commit"],
-        "The installed AgonDev commit differs from the audited baseline",
-    )
-
     profile = ROOT / "emulator"
     fab_executable = profile / "fab-agon-emulator"
     stock_mos = profile / "firmware/mos_platform.bin"
     stock_vdp = profile / "firmware/vdp_platform.so"
     require(fab_executable.is_symlink(), "Run scripts/setup_emulator.py")
+    require(
+        fab_executable.is_file() and os.access(fab_executable, os.X_OK),
+        f"Fab executable is missing or not executable: {fab_executable}",
+    )
     require(stock_mos.is_file(), f"Missing stock Platform MOS: {stock_mos}")
     require(stock_vdp.is_file(), f"Missing stock Platform VDP: {stock_vdp}")
-    expected_artifacts = baseline["stock_platform"]
-    require(
-        sha256(fab_executable) == expected_artifacts["fab_executable"]["sha256"],
-        "Fab executable hash differs from the audited baseline",
-    )
-    require(
-        sha256(stock_mos) == expected_artifacts["mos"]["sha256"],
-        "Stock Platform MOS hash differs from the audited baseline",
-    )
-    require(
-        sha256(stock_vdp) == expected_artifacts["vdp"]["sha256"],
-        "Stock Platform VDP hash differs from the audited baseline",
-    )
 
     help_result = subprocess.run(
         [str(fab_executable), "--help"],
@@ -106,16 +72,18 @@ def main() -> None:
         stderr=subprocess.STDOUT,
         text=True,
     ).stdout
-    require("default is platform" in help_result, "Fab help lacks Platform default")
+    require("--firmware" in help_result, "Fab help lacks firmware selection")
     require("--sdcard <path>" in help_result, "Fab help lacks explicit SD-card option")
-    dependencies = subprocess.run(
-        ["ldd", str(fab_executable)],
-        check=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-    ).stdout
-    require("not found" not in dependencies, "Fab has an unresolved shared library")
+    ldd = shutil.which("ldd")
+    if ldd:
+        dependencies = subprocess.run(
+            [ldd, str(fab_executable)],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        ).stdout
+        require("not found" not in dependencies, "Fab has an unresolved shared library")
 
     print(f"Python:    {executable}")
     print(f"AgonDev:   {agondev}")

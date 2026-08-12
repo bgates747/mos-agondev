@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import importlib.util
+import io
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "projects/mos-port/verify_vdp_regressions.py"
@@ -165,6 +168,58 @@ class VdpRegressionTests(unittest.TestCase):
         vdp.verify_handshake_structure(handshake_fixture())
         with self.assertRaisesRegex(vdp.VdpRegressionError, "downstream"):
             vdp.verify_handshake_structure(handshake_fixture(banner_first=True))
+
+    def test_default_cli_checks_only_the_candidate(self) -> None:
+        candidate = vdp.FirmwareImage("candidate", b"", {})
+        stdout = io.StringIO()
+        with mock.patch.object(vdp, "load_candidate", return_value=candidate), \
+             mock.patch.object(vdp, "verify_handshake_structure") as handshake, \
+             mock.patch.object(vdp, "verify_oversized_packets") as oversized, \
+             mock.patch.object(vdp, "load_zds_reference") as load_reference, \
+             contextlib.redirect_stdout(stdout):
+            status = vdp.main(
+                [
+                    "--nm", "candidate-nm",
+                    "--candidate-elf", "candidate.elf",
+                    "--candidate-bin", "candidate.bin",
+                ]
+            )
+
+        self.assertEqual(status, 0)
+        handshake.assert_called_once_with(candidate)
+        oversized.assert_called_once_with(candidate)
+        load_reference.assert_not_called()
+        self.assertNotIn("Pinned ZDS image", stdout.getvalue())
+
+    def test_reference_negative_control_is_explicit(self) -> None:
+        candidate = vdp.FirmwareImage("candidate", b"", {})
+        reference = vdp.FirmwareImage("reference", b"", {})
+        stdout = io.StringIO()
+        with mock.patch.object(vdp, "load_candidate", return_value=candidate), \
+             mock.patch.object(vdp, "verify_handshake_structure"), \
+             mock.patch.object(vdp, "verify_oversized_packets"), \
+             mock.patch.object(
+                 vdp, "load_zds_reference", return_value=reference
+             ) as load_reference, \
+             mock.patch.object(
+                 vdp, "reproduces_stale_length_bug", return_value=True
+             ) as reproduces_bug, \
+             contextlib.redirect_stdout(stdout):
+            status = vdp.main(
+                [
+                    "--nm", "candidate-nm",
+                    "--candidate-elf", "candidate.elf",
+                    "--candidate-bin", "candidate.bin",
+                    "--reference-bin", "reference.bin",
+                    "--reference-map", "reference.map",
+                    "--check-reference-negative-control",
+                ]
+            )
+
+        self.assertEqual(status, 0)
+        load_reference.assert_called_once()
+        reproduces_bug.assert_called_once_with(reference)
+        self.assertIn("Pinned ZDS image", stdout.getvalue())
 
 
 if __name__ == "__main__":

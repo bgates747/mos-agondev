@@ -2,9 +2,10 @@
 
 The accepted ongoing compatibility frontend lives at
 `projects/mos-port/tools/zds2gas.py`.
-Maintainers continue to use the audited ZDS idioms in the prepared source tree;
-the normal build writes 15 disposable GNU-as translation units and a
-deterministic mapping manifest to `projects/mos-port/generated/`.
+Maintainers continue to use the audited ZDS idioms in maintained MOS source;
+preparation preserves them in the disposable copied tree, and the normal build
+writes 15 disposable GNU-as translation units plus a deterministic mapping
+manifest to `projects/mos-port/generated/`.
 
 The frontend textually expands `INCLUDE` files, so `SCOPE` continues across
 include boundaries and an included `END` returns to its caller. Include lookup
@@ -22,9 +23,18 @@ test. Unknown or ambiguous dollar syntax, case-mismatched local/macro names,
 and conflicting immutable `EQU` definitions are errors with original source
 locations. The manifest records every expanded source location and SHA-256.
 
-Every generated unit starts with the pinned `agon-mos` commit, frontend schema,
-translation-unit name, and expanded-input hash. The pinned baseline is an
-explicit generation dependency. The normal object recipe invokes
+Every generated unit starts with the prepared source identity, frontend schema,
+translation-unit name, and expanded-input hash. The identity is the actual
+source `HEAD`, suffixed with `+tracked-dirty` when tracked source differed from
+that commit during preparation; untracked source is deliberately excluded
+because preparation copies only Git-tracked files.
+
+`scripts/prepare_mos_worktree.py` writes
+`worktree/.mos-agondev-worktree.json` with that source state plus the exact
+prepared-file inventory, SHA-256 hashes, and executable bits. Tree translation
+validates the sidecar against the complete input tree and fails closed when it
+is missing, malformed, or stale. The frozen research baseline is not a normal
+generation input. The normal object recipe invokes
 `projects/mos-port/tools/assemble_zds.py`, which rejects stale output, unsafe or duplicate
 manifest names, invalid line maps, non-UTF-8 generated source, and symlinked
 manifest or generated files before running GNU as. It rewrites exact GNU-as
@@ -34,6 +44,12 @@ unrelated stderr, and diagnostics for generated lines that cannot be mapped
 honestly. Relative includes such as startup's `../src/equs.inc` are accepted
 only when their resolved target remains under an allow-listed source or
 toolchain root.
+
+Every direct C, assembly, runtime, and firmware aggregate first runs the phony
+`provenance-check` target, so an incremental build cannot bypass complete-tree
+validation merely because generated assembly is newer than a changed or extra
+prepared input. The repository-root `firmware-check` additionally verifies the
+prepared copy directly against its configured maintained-source worktree.
 
 The supported language boundary is intentionally narrower than all of ZDS.
 Nested macros and structures, `SCOPE` or scoped `$name`/`name?` labels inside a

@@ -13,6 +13,10 @@ from pathlib import Path
 import verify_boot
 
 
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_FAB_ROOT = PROJECT_ROOT / "fab-agon-emulator"
+
+
 COMMANDS = (
     b"help\n"
     b"help echo\n"
@@ -195,9 +199,9 @@ def compare(candidate: bytes, reference: bytes) -> None:
 
 
 def main() -> int:
-    project = Path(__file__).resolve().parents[2]
+    project = PROJECT_ROOT
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--fab-root", type=Path, default=project / "../../fab-agon-emulator")
+    parser.add_argument("--fab-root", type=Path, default=DEFAULT_FAB_ROOT)
     parser.add_argument("--candidate", type=Path, default=project / "projects/mos-port/bin/MOS.bin")
     parser.add_argument("--reference", type=Path, default=project / "emulator/firmware/mos_platform.bin")
     parser.add_argument("--timeout", type=float, default=45.0)

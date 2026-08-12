@@ -15,9 +15,8 @@ from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MOS = PROJECT_ROOT / "upstream/agon-mos"
-DEFAULT_AGONDEV = PROJECT_ROOT / "../../agondev"
-DEFAULT_FAB = PROJECT_ROOT / "../../fab-agon-emulator"
-DEFAULT_DOCS = PROJECT_ROOT / "../../agon-docs"
+DEFAULT_FAB = PROJECT_ROOT / "fab-agon-emulator"
+DEFAULT_DOCS = PROJECT_ROOT / "agon-docs"
 
 
 def run(*args: str | Path) -> str:
@@ -99,6 +98,25 @@ def file_identity(path: Path) -> dict[str, Any]:
     return {"bytes": path.stat().st_size, "sha256": sha256(path)}
 
 
+def configured_agondev_source() -> Path:
+    """Resolve the source checkout from the configured release-tree link."""
+
+    release = (PROJECT_ROOT / "toolchains/agondev").resolve(strict=True)
+    if release.name != "release" or not (release / "bin").is_dir():
+        raise ValueError(f"configured AgonDev link is not a release tree: {release}")
+    return release.parent
+
+
+def fab_executable(fab: Path) -> Path:
+    for candidate in (
+        fab / "fab-agon-emulator",
+        fab / "target/release/fab-agon-emulator",
+    ):
+        if candidate.is_file():
+            return candidate
+    raise FileNotFoundError(f"no Fab executable found under {fab}")
+
+
 def build_audit(mos: Path, agondev: Path, fab: Path, docs: Path) -> dict[str, Any]:
     c_sources = sorted(mos.rglob("*.c"))
     assembly_sources = sorted([*mos.rglob("*.asm"), *mos.rglob("*.inc")])
@@ -129,7 +147,7 @@ def build_audit(mos: Path, agondev: Path, fab: Path, docs: Path) -> dict[str, An
             "space_allocation": parse_zds_space_allocation(
                 platform_map.read_text(encoding="utf-8", errors="replace")
             ),
-            "fab_executable": file_identity(fab / "fab-agon-emulator"),
+            "fab_executable": file_identity(fab_executable(fab)),
             "mos": file_identity(firmware / "mos_platform.bin"),
             "map": file_identity(platform_map),
             "vdp": file_identity(firmware / "vdp_platform.so"),
@@ -146,9 +164,13 @@ def build_audit(mos: Path, agondev: Path, fab: Path, docs: Path) -> dict[str, An
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mos", type=Path, default=DEFAULT_MOS)
-    parser.add_argument("--agondev", type=Path, default=DEFAULT_AGONDEV)
+    parser.add_argument(
+        "--agondev",
+        type=Path,
+        help="AgonDev source checkout (default: derive from toolchains/agondev)",
+    )
     parser.add_argument("--fab", type=Path, default=DEFAULT_FAB)
     parser.add_argument("--docs", type=Path, default=DEFAULT_DOCS)
     parser.add_argument(
@@ -160,9 +182,10 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
+    agondev = args.agondev.expanduser().resolve() if args.agondev else configured_agondev_source()
     audit = build_audit(
         args.mos.expanduser().resolve(),
-        args.agondev.expanduser().resolve(),
+        agondev,
         args.fab.expanduser().resolve(),
         args.docs.expanduser().resolve(),
     )

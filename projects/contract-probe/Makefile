@@ -1,6 +1,7 @@
 NAME := mos-contract-probe
 
-AGONDEV_TOOLCHAIN ?= $(abspath ../../toolchains/agondev)
+REPOSITORY := $(abspath ../..)
+AGONDEV_TOOLCHAIN ?= $(REPOSITORY)/toolchains/agondev
 LDHAS_ARG_PROCESSING := 0
 LDHAS_EXIT_HANDLER := 0
 
@@ -9,7 +10,8 @@ include $(AGONDEV_TOOLCHAIN)/config/makefile.inc
 FORMATTER_DIR := ../mos-port/runtime/formatter
 NANOPRINTF_DIR := ../mos-port/runtime/vendor/nanoprintf
 FORMATTER_OBJECT := $(OBJDIR)/firmware_printf.o
-PYTHON := $(abspath ../../.venv/bin/python)
+PYTHON := $(REPOSITORY)/.venv/bin/python
+FAB_ROOT ?= $(REPOSITORY)/fab-agon-emulator
 OBJS += $(FORMATTER_OBJECT)
 CFLAGS += -std=gnu17 -Wall -Wextra -Werror -fno-builtin
 
@@ -27,4 +29,4 @@ audit:
 	$(PYTHON) -B audit_wrappers.py
 
 verify: audit all
-	$(PYTHON) -B verify_contract.py
+	$(PYTHON) -B verify_contract.py --fab-root "$(FAB_ROOT)"

@@ -14,6 +14,12 @@ SPEC.loader.exec_module(verify_boot)
 
 
 class VerifyBootTests(unittest.TestCase):
+    def test_default_fab_root_is_project_local(self) -> None:
+        self.assertEqual(
+            verify_boot.DEFAULT_FAB_ROOT,
+            Path(__file__).resolve().parents[1] / "fab-agon-emulator",
+        )
+
     def test_accepts_shell_and_hostfs_evidence(self) -> None:
         verify_boot.validate_output(
             b"Agon Platform MOS Version 3.0.2\n"

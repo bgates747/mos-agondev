@@ -1,14 +1,23 @@
-.venv/
+/.venv
 __pycache__/
 *.py[cod]
 
-# Local links into installed, read-only checkouts.
-toolchains/
-upstream/
+# Optional project-local dependency checkouts or distributions.
+/agondev
+/agon-mos
+/agon-docs
+/agon-vdp
+/agondev-tests
+/fab-agon-emulator
+
+# Local links into configured source/toolchain inputs.
+/toolchains
+/upstream
 
 # Generated build and emulator state.
-emulator/
+/emulator
 projects/*/bin/
 projects/*/obj/
 projects/*/generated/
 projects/mos-port/worktree/
+projects/mos-port/worktree.backup/

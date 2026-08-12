@@ -9,6 +9,10 @@ import subprocess
 from pathlib import Path
 
 
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_FAB_ROOT = PROJECT_ROOT / "fab-agon-emulator"
+
+
 REQUIRED_OUTPUT = (
     b"Agon Platform MOS Version",
     b"Volume: hostfs",
@@ -86,9 +90,9 @@ def verify_boot(cli: Path, firmware: Path, sdcard: Path, timeout: float) -> byte
 
 
 def main() -> int:
-    root = Path(__file__).resolve().parents[2]
+    root = PROJECT_ROOT
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--fab-root", type=Path, default=root / "../../fab-agon-emulator")
+    parser.add_argument("--fab-root", type=Path, default=DEFAULT_FAB_ROOT)
     parser.add_argument("--firmware", type=Path, default=root / "projects/mos-port/bin/MOS.bin")
     parser.add_argument("--sdcard", type=Path, default=root / "emulator/sdcard")
     parser.add_argument("--timeout", type=float, default=10.0)

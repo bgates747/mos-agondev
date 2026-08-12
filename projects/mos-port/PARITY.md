@@ -44,21 +44,31 @@ poll packet. The legal 16-byte boundary must fill exactly the buffer and also
 accept a following poll. Encountering an opcode outside the audited path is a
 hard failure.
 
-Run this evidence after building the firmware and setting up the stock
-emulator profile:
+Run the current candidate evidence after building the firmware:
 
 ```bash
-.venv/bin/python -B projects/mos-port/verify_vdp_regressions.py
+make vdp-regression-check
 ```
+
+This default gate reads only the candidate ELF and ROM. It checks the linked
+startup handshake and every oversized length without requiring a particular
+stock MOS/map pair.
 
 The pinned ZDS image is not a valid positive comparison for this regression.
 Its hash is the audited stock value
 `d564243283972690933a4554296ad6202ca4ef54572279533a942960846bebae`, and its
 map records `vdp_protocol.obj` as built on 2026-03-01. It predates the pinned
-MOS source fix from 2026-07-28. The verifier executes that image too and
-requires it to reproduce the old stale-length failure as an intentional
-negative control; a refreshed ZDS image would require refreshing this
-contract. The standalone verifier pins both artifacts before interpreting
+MOS source fix from 2026-07-28. The frozen baseline gate executes that image
+and requires it to reproduce the old stale-length failure as an intentional
+negative control:
+
+```bash
+make vdp-baseline-check
+```
+
+That target invokes the verifier with
+`--check-reference-negative-control`. A refreshed ZDS image would require
+refreshing this contract. The verifier pins both artifacts before interpreting
 them: the ZDS map must also match
 `d69e60bbce61a7b4b3eef318ba395f11c4e1a5b585755755113992dc94edcb86`.
 
@@ -74,7 +84,8 @@ the graphical keyboard editor. The tests do not exercise broader VDP packet
 types and timing, UART error/timing behavior, RTC mutation/persistence,
 writable FatFS operations, the complete MOS exported ABI, physical SD media,
 or hardware. Those remain acceptance gaps under PORT-201/202/203 and the
-PORT-106 human gate.
+applicable human gate for future emulator-coupled changes. The initial
+graphical gate is recorded as complete in the research devlog.
 
 The runtime host golden now covers every distinct format spelling inventoried
 from maintained MOS (`%%`, integer/string/character conversions, all fixed and

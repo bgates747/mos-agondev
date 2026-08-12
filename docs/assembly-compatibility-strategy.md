@@ -178,10 +178,21 @@ include edge, every contributing file and hash, and every generated-to-original
 line mapping.
 
 Generated files are disposable and always newline-terminated. Their header
-names the frontend schema, translation unit, pinned `agon-mos` commit, and hash
-of the expanded input. The manifest records matching output hashes; the build
-also makes the pinned baseline record an explicit generation prerequisite.
-Generated files must never be edited manually.
+names the frontend schema, translation unit, prepared source identity, and hash
+of the expanded input. The source identity is the actual `agon-mos` `HEAD`,
+with `+tracked-dirty` when tracked source differed from that commit at
+preparation time. Untracked files do not affect it because the prepared tree
+copies only Git-tracked files.
+
+Preparation writes `.mos-agondev-worktree.json` into the ignored worktree. Its
+schema records the source `HEAD`, tracked-dirty boolean, and a sorted inventory
+of every prepared tracked path with SHA-256 and executable bits. Before any
+tree translation, the frontend validates the sidecar and the complete prepared
+tree against one another, including the absence of undeclared files and
+symlinks. Missing, malformed, or stale provenance is an error. The generated
+manifest records the effective identity and the validated sidecar hash; the
+frozen research baseline is not a normal generation dependency. Generated
+files must never be edited manually.
 
 The audited source-language surface includes:
 
@@ -238,7 +249,10 @@ failure, optional columns and line endings, non-UTF-8 continuation data,
 unmapped and malformed diagnostics, exit/stdout preservation, stale hashes,
 schema errors, traversal, duplicate outputs, external generated sources, and
 symlinks. The deterministic corpus test independently translates the tree twice
-and assembles every generated root.
+and assembles every generated root. Preparation/frontend tests additionally
+cover clean and tracked-dirty identities, deterministic metadata, missing or
+malformed sidecars, content and executable-mode drift, extra files, and
+symlinks in prepared input.
 
 The decision gate passed: all 15 build-critical assembly roots translate and
 assemble without maintained-source globalization; generated output and

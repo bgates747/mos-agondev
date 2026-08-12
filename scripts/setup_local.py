@@ -17,8 +17,8 @@ from typing import Sequence
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_AGONDEV_SOURCE = Path("../../agondev")
-DEFAULT_MOS_SOURCE = Path("../../agon-mos")
+DEFAULT_AGONDEV_SOURCE = Path("agondev")
+DEFAULT_MOS_SOURCE = Path("agon-mos")
 
 EXPECTED_AGONDEV_TOOLS = (
     "release/bin/agondev-config",
@@ -209,14 +209,14 @@ def _parser() -> argparse.ArgumentParser:
         "--agondev-source",
         dest="agondev_source",
         type=Path,
-        help="AgonDev checkout (default: ../../agondev from repository root)",
+        help="AgonDev checkout (default: agondev in repository root)",
     )
     parser.add_argument(
         "--agon-mos",
         "--mos-source",
         dest="mos_source",
         type=Path,
-        help="agon-mos checkout (default: ../../agon-mos from repository root)",
+        help="agon-mos checkout (default: agon-mos in repository root)",
     )
     return parser
 
