@@ -1,0 +1,1 @@
+fixtures/negative_unresolved.zds.asm:4: error[unresolved-local]: local Loop? has no case-exact definition in scope 1

@@ -13,6 +13,10 @@ SPEC.loader.exec_module(verify_probe_outputs)
 
 
 class VerifyProbeOutputTests(unittest.TestCase):
+    def test_c_object_inventory_is_explicit(self) -> None:
+        self.assertEqual(len(verify_probe_outputs.C_OBJECTS), 16)
+        self.assertTrue(all(not path.startswith("asm/") for path in verify_probe_outputs.C_OBJECTS))
+
     def test_parses_objdump_section_layout(self) -> None:
         output = """
 Idx Name          Size      VMA       LMA       File off  Algn

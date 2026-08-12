@@ -1,9 +1,15 @@
 # Feasibility Study: Building Agon MOS with AgonDev
 
-Status: study complete enough to recommend a bounded implementation spike
-Assessment: **conditionally feasible**
-Delivery risk: **medium-high** until a complete image boots and passes emulator
-and hardware gates
+> Implementation update (2026-08-12): the recommended path has produced a
+> fully resolved 102,059-byte candidate that boots, mounts Fab directory-backed
+> hostfs through a format-2 ROM descriptor, and passes a limited shell-output
+> comparison with the pinned ZDS image. The findings below preserve the
+> original study rationale; current remaining work is tracked only in TODO.md.
+
+Status: implementation feasibility established; release qualification pending
+Assessment: **feasible, with remaining parity and hardware gates**
+Delivery risk: **medium-high for release use** until graphical, broad parity,
+and physical-hardware gates pass
 
 ## 1. Executive determination
 
@@ -15,7 +21,8 @@ optimization workaround. A separate probe successfully linked an ADL firmware
 ELF with reset code at `0x000000`, vectors at `0x000100`, code at `0x000220`,
 initialized data in MOS RAM, and a flat binary output.
 
-This is not a Makefile-only conversion. Four material bodies of work remain:
+This was not a Makefile-only conversion. The original study identified four
+material bodies of work:
 
 1. Port 6,680 lines of ZDS-dialect assembly and includes to the GNU assembler
    dialect accepted by AgonDev.
@@ -26,11 +33,13 @@ This is not a Makefile-only conversion. Four material bodies of work remain:
    output and compiler helper routines.
 4. Prove behavioral parity in Fab Agon Emulator and then on physical hardware.
 
-The recommended decision is therefore a conditional go: proceed in phases,
-with a linked-image size/layout gate before emulator work and a hardware gate
-before claiming that AgonDev can replace ZDS for releases. The authoritative
-work inventory is `TODO.md`; the phases below describe sequencing and decision
-criteria rather than a second task list.
+Implementation has closed the assembly, linker, runtime, size, boot, and
+initial headless-comparison gates. The decision is now a go for continued port
+qualification, with graphical, broader behavioral, upstream, and hardware
+gates before claiming that AgonDev can replace ZDS for releases. The
+authoritative work inventory is `TODO.md`; the phases below preserve the
+original sequencing and decision criteria rather than forming a second task
+list.
 
 ## 2. Scope and method
 
@@ -50,8 +59,9 @@ The evidence comprises:
    Agon Emulator.
 5. Inspection of Fab's MOS-loading, map-parsing, and host-filesystem hooks.
 
-No complete AgonDev-built MOS image exists yet, so this study does not claim
-boot or behavioral parity.
+At the original evidence cutoff no complete AgonDev-built MOS image existed,
+so the study itself did not claim boot or behavioral parity. The implementation
+update above and current development log supersede that historical limitation.
 
 ## 3. Reproducibility baseline
 
@@ -129,17 +139,19 @@ prove that every ZDS extension or undefined C construct has identical semantics.
 
 ### Finding 2: all MOS C translation units compile with a small portability shim
 
-The study compiled all 16 C sources listed in the ZDS project. The resulting
-object set contains 88,020 loadable C bytes (`.text + .rodata + .data`) and
+The study compiled all 16 C sources listed in the ZDS project. The initial
+object set contained 88,020 loadable C bytes (`.text + .rodata + .data`); the
+hardened `quickrand` contract brings the maintained probe to 88,054, with
 1,726 bytes of C BSS. The corresponding currently linked ZDS C modules account
-for 95,238 loadable bytes (`CODE + STRSECT + TEXT + DATA`). The AgonDev result is
-7,218 bytes, or about 7.6%, smaller at this intermediate comparison point.
+for 95,238 loadable bytes (`CODE + STRSECT + TEXT + DATA`). The current
+AgonDev result is 7,184 bytes, or about 7.5%, smaller at this intermediate
+comparison point.
 
 That comparison is encouraging but not a final ROM forecast. It excludes the
 ported MOS assembly and the AgonDev runtime, and it compares relocatable
 AgonDev sections with modules selected into a completed ZDS link.
 
-Exactly five source files needed experimental changes:
+The original probe needed five source-file changes:
 
 1. `main.c`: give linker-provided `_heapbot` an object type rather than declaring
    an array of `void`.
@@ -152,22 +164,23 @@ Exactly five source files needed experimental changes:
 5. `src_fatfs/diskio.c`: cast the year difference to `DWORD` before shifting it
    by 25, avoiding a 24-bit intermediate.
 
-Study-local compatibility headers provide Zilog type names, case aliases for
-`CTYPE.h`, `String.h`, `eZ80.h`, and `ez80.h`, peripheral lvalues through
-Clang's address-space-3 extension, interrupt enable/disable helpers, and GPIO
-bit-update helpers. This demonstrates a low-impact migration route: preserve
-the upstream source vocabulary initially, then decide later whether to adopt
-AgonDev-native `IO(REG)` calls directly.
+The implementation subsequently hardened this into 11 drift-checked prepared
+paths. Portable include spellings select AgonDev's official headers; a narrow
+local facade provides only the Zilog aliases and peripheral lvalues agon-mos
+uses. The contract pins nine transitive official header hashes, audits 44
+hardware names, asserts type/register values, checks emitted I/O instructions,
+and preserves the original ZDS branch of `quickrand` while giving AgonDev an
+explicit register result and return.
 
 One compiler-specific workaround is required. AgonDev 1.0 exhausts registers
 while compiling `src_fatfs/ff.c` at `-Oz` and at `-O1`; compiling that
 translation unit at `-Os` succeeds. The per-file exception is recorded in
 `projects/mos-port/Makefile` and should remain explicit and regression-tested.
 
-The C probe also uses `-Wno-return-type` because `quickrand()` relies on a ZDS
-inline-assembly return-register idiom. A production port should replace it with
-a standalone assembly routine or explicit supported inline assembly. Successful
-compilation with this warning suppressed is not semantic proof.
+Return-type diagnostics are now errors. The C compatibility verifier checks
+that AgonDev emits `ld a,r` followed by the expected zero extension into HLU and
+`ret`, and independently proves the FatFS timestamp expression uses its 32-bit
+shift helper.
 
 ### Finding 3: the eZ80 instruction set is supported; the assembly dialect needs a bounded port
 
@@ -191,7 +204,8 @@ The mechanically identifiable incompatibilities are:
 | `$F`/`$B` local-label references | 76 | GNU numeric labels or unique `.L` labels |
 | `$$:` local-label definitions | 64 | GNU numeric labels or unique `.L` labels |
 | binary suffix literals such as `00000001b` | 26 | `0b00000001` |
-| `DL` or `DW24` | 21 | `d24` |
+| `DL` (32-bit) | included in 21 `DL`/`DW24` uses | `d32` |
+| `DW24` (24-bit) | included in 21 `DL`/`DW24` uses | `d24` |
 | `SCOPE` | 19 | remove after making local labels unique |
 | `MACRO` definitions and ZDS terminators | 17 | `.macro` / `.endm` |
 | `SEGMENT` | 15 | `.section` or accepted `SECTION` form |
@@ -289,14 +303,14 @@ audited by the final link map. The stock AgonDev CRT0 must not be used: it build
 a MOS-loaded application header, handles application arguments and exit, and
 returns to an already-running MOS.
 
-Formatted output needs an intentional decision. The ZDS project enables
+Formatted output needed an intentional decision. The ZDS project enables
 `genprintf`; the ZDS map contains specialized print support rather than one
-ordinary `_printf`. AgonDev's nanoprintf configuration disables large format
-specifiers by default, while MOS uses width-qualified 32-bit `%lu` formatting
-in its directory displays. A stock `_printf` link is therefore not sufficient
-evidence. The port should either build the formatter with required large-format
-support or provide a firmware-local formatter, then compare all MOS format
-patterns against ZDS output.
+ordinary `_printf`. MOS uses width-qualified 32-bit `%lu` formatting in its
+directory displays. On this eZ80 target nanoprintf selects a 32-bit long
+accumulator even with its large-specifier option disabled, but a stock
+monolithic `_printf` link is still not sufficient evidence. The implemented
+port uses a firmware-local formatter and compares every maintained format
+spelling at host and target boundaries.
 
 The output sink must also be deliberate. AgonDev's weak application
 `_putchar` inserts carriage return before line feed and then uses a MOS RST
@@ -326,8 +340,9 @@ code out of that range. An alternative is a generated ZDS-compatible symbol
 sidecar or an emulator enhancement that reads ELF/GNU maps, but either approach
 adds coupling outside the firmware. A raw SD image bypasses hostfs and therefore
 also avoids the map dependency, but it does not test directory-backed hostfs.
-Until the descriptor exists, a directory-backed stock emulator instance must
-copy the matching stock map alongside the stock binary.
+The implemented candidate emits the descriptor and verifies all 25 linked FatFS
+addresses. A directory-backed stock emulator instance still needs the matching
+stock map alongside the descriptor-less stock binary.
 
 ### Finding 8: current size evidence is favorable but leaves runtime pressure
 
@@ -343,7 +358,7 @@ placement gaps. The ROM map's `Used` figure is the appropriate measure for
 section contribution; both map use and final binary extent should be gated in
 the new build.
 
-The 7,218-byte reduction seen in the C-only comparison is helpful, but it is not
+The 7,184-byte reduction seen in the C-only comparison is helpful, but it is not
 bankable headroom until the assembly and runtime are linked. The largest risks
 to ROM are a generic printf implementation, duplicated application/runtime
 shims, and loss of ZDS code-generation specialization. RAM has substantially
@@ -363,10 +378,12 @@ recommends emulator testing before hardware. A successful Fab boot cannot
 close timing-sensitive UART/SPI/I2C, flash, interrupt, warm-boot, or recovery
 risks. Hardware testing and a known-good recovery path remain required.
 
-The current branch's three oversized-VDP-packet Python regression tests pass,
-but they are a source-aware model rather than an assembled/emulated test. They
-should remain as a fast gate while an end-to-end serial-packet test is added
-during implementation.
+The branch's three original oversized-VDP-packet Python tests are a
+source-aware model. The implementation now also executes the corresponding
+path from the final linked candidate bytes for every one-byte oversized length,
+using the pre-fix ZDS image as a pinned negative control. This closes the
+linked-code regression but is not an end-to-end serial injection or broad VDP
+protocol/timing test.
 
 ## 5. Risk assessment
 
@@ -395,7 +412,7 @@ upstream checkout.
 
 ### Phase 1: make the C portability layer production-quality
 
-Convert the five experimental source changes into reviewed patches, keep the
+Convert the initial experimental source changes into reviewed patches, keep the
 compatibility layer narrow, replace the `quickrand` return-register idiom, and
 turn relevant warnings back into errors. Preserve the explicit `ff.c -Os`
 workaround with a documented compiler-version condition.
@@ -458,10 +475,11 @@ release evidence without ZDS or Hex2Bin.
 
 Proceed with the port under the phased gates above. The successful 16-of-16 C
 compile, favorable C size comparison, compatible ABI, supported eZ80 opcode
-set, and working custom-linker probe make outright infeasibility unlikely. The
-medium-high rating remains appropriate because the unported assembly, exact
-firmware linker contract, formatted-output behavior, final ROM budget, and
-hardware validation are all on the critical path.
+set, and working custom-linker probe made outright infeasibility unlikely. The
+first four implementation risks named here—assembly, linker, formatter, and ROM
+budget—have since produced a verified 102,059-byte bootable image; current
+status and remaining parity gates are summarized near the start of this
+document. Hardware validation remains on the critical path.
 
 The study should be considered upgraded from “conditionally feasible” to
 “feasible for release use” only after Phase 5 passes. Until then, ZDS remains

@@ -1,0 +1,152 @@
+{
+  "archive_sha256": "5de7878342ab6780593fbf8d54d8005960e2471bd0e34c0e307fbcfe42fef28a",
+  "nanoprintf_sha256": "30ac848df4b8713d42194b87aeb23f10e86f39002f46441f7ecf89512106979d",
+  "c_objects": [
+    "main.o",
+    "src/clock.o",
+    "src/i2c.o",
+    "src/mos.o",
+    "src/mos_editor.o",
+    "src/mos_file.o",
+    "src/mos_sysvars.o",
+    "src/strings.o",
+    "src/tests.o",
+    "src/timer.o",
+    "src/uart.o",
+    "src_fatfs/diskio.o",
+    "src_fatfs/ff.o",
+    "src_fatfs/ffsystem.o",
+    "src_fatfs/ffunicode.o",
+    "src_umm_malloc/umm_malloc.o"
+  ],
+  "local_symbols": [
+    "__i48mulu",
+    "__i48shru",
+    "_printf",
+    "_sprintf"
+  ],
+  "linker_symbols": [
+    "_SysClkFreq",
+    "__heapbot",
+    "__low_data",
+    "__low_romdata",
+    "__stack"
+  ],
+  "metadata_only_undefined": [
+    "__ior.hijack_lor",
+    "__ixor.hijack_lxor",
+    "_toupper.internal"
+  ],
+  "required_providers": {
+    "__i48mulu": "local",
+    "__i48shru": "local",
+    "_printf": "local",
+    "_putch": "assembly",
+    "_sprintf": "local"
+  },
+  "formatter_contract": {
+    "allowed_conversions": [
+      "%",
+      "X",
+      "c",
+      "d",
+      "i",
+      "o",
+      "p",
+      "s",
+      "u",
+      "x"
+    ],
+    "allowed_flags": "-+ 0",
+    "allowed_length_modifiers": [
+      "",
+      "l"
+    ],
+    "format_arguments": {
+      "printf": 0,
+      "sprintf": 1
+    }
+  },
+  "allowed_archive_members": {
+    "compiler": [
+      "and.o",
+      "bshl.o",
+      "bshru.o",
+      "frameset.o",
+      "frameset0.o",
+      "idivs.o",
+      "idivu.o",
+      "idvrms.o",
+      "idvrmu.o",
+      "imulu.o",
+      "indcall.o",
+      "indcallhl.o",
+      "ineg_sneg.o",
+      "inot.o",
+      "irems.o",
+      "ishl.o",
+      "ishrs.o",
+      "ladd.o",
+      "lcmps.o",
+      "lcmpu.o",
+      "lcmpzero.o",
+      "ldivs.o",
+      "ldivs_lrems_common.o",
+      "ldivu.o",
+      "ldvrmu.o",
+      "llmulu.o",
+      "llshrs.o",
+      "llshru.o",
+      "lmulu.o",
+      "lneg.o",
+      "lnot.o",
+      "lshl.o",
+      "lshrs.o",
+      "lshru.o",
+      "lsub.o",
+      "or.o",
+      "sand.o",
+      "sdvrmu.o",
+      "setflag.o",
+      "sor.o",
+      "sremu.o",
+      "sshru.o",
+      "xor.o"
+    ],
+    "libc": [
+      "isalpha.o",
+      "isdigit.o",
+      "isspace.o",
+      "isupper.o",
+      "isxdigit.o",
+      "memchr.o",
+      "memcmp.o",
+      "memcpy.o",
+      "memmove.o",
+      "memset.o",
+      "qsort.o",
+      "strcat.o",
+      "strchr.o",
+      "strcmp.o",
+      "strcpy.o",
+      "strlen.o",
+      "strncpy.o",
+      "strrchr.o",
+      "strspn.o",
+      "strtol.o",
+      "tolower.o",
+      "toupper.o"
+    ]
+  },
+  "forbidden_archive_members": [
+    "arg_processing.o",
+    "crt0.o",
+    "files.o",
+    "fputc.o",
+    "i48stubs.o",
+    "nanoprintf.o",
+    "putch.o",
+    "putchar.o",
+    "putchar_arg_processing.o"
+  ]
+}

@@ -65,13 +65,14 @@ owned by `TODO.md`.
    `projects/toolchain-probe/src/type_model.c:5-12`.
 6. Sixteen of 16 MOS C units compile. The build list and flags are recorded at
    `projects/mos-port/Makefile:8-44`.
-7. AgonDev C loadable sections total 88,020 bytes; corresponding current ZDS C
-   modules total 95,238 bytes. This is a C-only intermediate comparison, not a
-   full-image prediction.
-8. Five experimental source-file changes were sufficient: object types for
-   linker arrays in `main.c`, `src/defines.h`, and `src/mos.c`; a direct type
-   include in `src/clock.h`; and a pre-shift `DWORD` cast in
-   `src_fatfs/diskio.c`.
+7. The initial AgonDev C probe totaled 88,020 loadable bytes; the explicit
+   `quickrand` return contract raises the current total to 88,054. Corresponding
+   current ZDS C modules total 95,238 bytes. This is a C-only intermediate
+   comparison, not a full-image prediction.
+8. The initial syntax probe needed five experimental source-file changes. The
+   accepted prepared worktree now applies 11 drift-checked file patches for
+   linker arrays, portable include spelling, clock types, the 32-bit timestamp
+   shift, explicit `quickrand`, and three reviewed long-branch selections.
 9. `src_fatfs/ff.c` fails with AgonDev 1.0 register exhaustion at `-Oz` and
    `-O1`, and succeeds at `-Os`; the explicit override is
    `projects/mos-port/Makefile:46-48`.
@@ -80,9 +81,11 @@ owned by `TODO.md`.
     `toolchains/agondev/include/ez80f92.h:8-15`. AgonDev's own
     timer demonstrates the intended access form:
     `../../agondev/src/lib/libtimer/timer.c:12-32`.
-11. `quickrand()` relies on implicit ZDS inline-assembly return state and must be
-    rewritten before warning suppression is removed:
-    `upstream/agon-mos/main.c:127-131`.
+11. Upstream `quickrand()` relies on implicit ZDS inline-assembly return state:
+    `upstream/agon-mos/main.c:127-131`. The prepared AgonDev branch now
+    declares the `A` output and condition-code clobber explicitly, returns it as
+    C, and is disassembly-checked for the required zero extension; the original
+    ZDS branch is preserved.
 
 ## 4. Assembly evidence
 
@@ -160,8 +163,8 @@ owned by `TODO.md`.
    `\n\r` sequences, so the firmware formatter must use raw MOS `putch`
    semantics.
 7. Stock Platform map headroom is 22,731 ROM bytes and 13,355 RAM bytes. The
-   favorable 7,218-byte C-only delta cannot be treated as final headroom until
-   assembly and runtime are linked.
+   favorable 7,184-byte C-only delta could not be treated as final headroom
+   before assembly and runtime were linked.
 
 ## 7. Fab emulator integration fact
 
@@ -178,14 +181,41 @@ owned by `TODO.md`.
    format:
    `../../fab-agon-emulator/agon-ez80-emulator/src/symbol_map.rs:14-48`.
 5. The pinned stock Platform ROM lacks the descriptor, so its matching stock map
-   must remain adjacent. A future GNU-linked MOS needs the ROM descriptor, a
-   compatible generated sidecar, or an emulator parser enhancement; a GNU map
-   alone will disable hostfs. A raw SD image bypasses hostfs and its map
-   dependency, but does not validate directory-backed hostfs.
+   must remain adjacent. A GNU-linked MOS needs the ROM descriptor, a compatible
+   generated sidecar, or an emulator parser enhancement; a GNU map alone will
+   disable hostfs. The candidate emits the descriptor and verifies all 25
+   addresses. A raw SD image bypasses hostfs and its map dependency, but does
+   not validate directory-backed hostfs.
 
 ## 8. Decision
 
-The evidence supports a conditional implementation go with medium-high delivery
-risk. Release feasibility is established only after the full image fits, boots
-with verified hostfs in Fab, passes behavioral comparison, and passes physical
-hardware qualification. Until then, ZDS remains the reference release build.
+The evidence supports continued implementation and qualification with
+medium-high release risk. The full image now fits, boots with verified hostfs,
+and passes bounded behavioral comparison; graphical, broad parity, upstream,
+and physical-hardware gates remain. Until those pass, ZDS remains the reference
+release build.
+
+## 9. Implementation status — 2026-08-12
+
+The feasibility gates through the first bootable image have now been crossed.
+The candidate compiles all 16 C units, translates and assembles all 15 active
+assembly roots, links an allow-listed runtime, and emits a fully resolved
+102,059-byte binary plus ELF, GNU map, and Intel HEX. Fab's format-2 descriptor
+at `0x6B` resolves all 25 FatFS hooks; the image boots with the stock Platform
+VDP, mounts directory-backed hostfs, and matches the pinned ZDS build for
+deterministic command/help parsing, process-local variables, RTC/credits,
+nested hostfs traversal, and invalid-command handling.
+
+The C compatibility layer now has a pinned nine-header/44-hardware-name
+contract, type and register assertions, dependency-set checks, source rules,
+and emitted-code checks. This upgrades the original build-feasibility
+conclusion. The strict source-mapped frontend has also passed its lexical,
+golden, object, relocation, disassembly, diagnostic, structure, provenance, and
+full-corpus gates without globalizing maintained-source locals. A target
+contract covers every formatter spelling and a bounded read-only wrapper/ABI
+set; its source-wide audit identified three pinned AgonDev libmos defects and a
+Fab large-file hostfs limitation, recorded in `upstream-findings.md`. The
+linked-byte VDP gate covers the blocking startup poll and every oversized
+one-byte packet length. The graphical human gate, broad emulator/API parity,
+upstream coordination, and physical hardware testing remain in the
+authoritative TODO.

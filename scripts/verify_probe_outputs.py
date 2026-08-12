@@ -15,6 +15,25 @@ TOOLCHAIN = ROOT / "toolchains/agondev"
 FIRMWARE_ROOT = ROOT / "projects/toolchain-probe"
 C_PROBE_ROOT = ROOT / "projects/mos-port"
 
+C_OBJECTS = (
+    "main.o",
+    "src/clock.o",
+    "src/i2c.o",
+    "src/mos.o",
+    "src/mos_editor.o",
+    "src/mos_file.o",
+    "src/mos_sysvars.o",
+    "src/strings.o",
+    "src/tests.o",
+    "src/timer.o",
+    "src/uart.o",
+    "src_fatfs/diskio.o",
+    "src_fatfs/ff.o",
+    "src_fatfs/ffsystem.o",
+    "src_fatfs/ffunicode.o",
+    "src_umm_malloc/umm_malloc.o",
+)
+
 EXPECTED_FIRMWARE_SECTIONS = {
     ".reset": (0x000009, 0x000000, 0x000000),
     ".vectors": (0x000120, 0x000100, 0x000100),
@@ -92,7 +111,11 @@ def main() -> None:
     require(sha256(binary) == expected_hash, "Firmware probe hash changed")
     require(binary.stat().st_size == 611, "Firmware probe flat-binary extent changed")
 
-    objects = sorted((C_PROBE_ROOT / "obj").rglob("*.o"))
+    # Keep the C probe independent of assembly objects emitted into the same
+    # tree by the complete firmware build.
+    objects = [C_PROBE_ROOT / "obj" / relative for relative in C_OBJECTS]
+    missing = [path for path in objects if not path.is_file()]
+    require(not missing, f"Missing C probe objects: {missing}")
     expected_count = baseline["measured_probes"]["agondev_c_translation_units"]
     require(
         len(objects) == expected_count,

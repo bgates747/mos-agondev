@@ -6,11 +6,11 @@ checkouts reached through `upstream/` and `toolchains/` are read-only inputs.
 
 ## Current state
 
-The study concludes that an AgonDev MOS port is technically feasible, with
-medium-high implementation risk until a complete image boots. The repository
-does not yet contain a bootable replacement MOS. It contains a firmware-layout
-toolchain proof, an all-C compile probe, source-audit tooling, and a generated
-stock Platform MOS/VDP emulator profile.
+The study concludes that an AgonDev MOS port is technically feasible. The first
+complete candidate now builds and boots: all C and active assembly inputs link
+with a restricted runtime into a verified 102,059-byte image, and headless Fab
+tests reach the shell with directory-backed hostfs. It is still a candidate,
+not a replacement release, until broader parity and hardware qualification.
 
 `TODO.md` is the only authoritative task list. The current technical conclusion
 is in `docs/feasibility-study.md`; verified platform facts are in
@@ -33,12 +33,12 @@ The worktree preparation command intentionally refuses to replace an existing
 generated worktree. Upstream `agon-mos`, AgonDev, and Fab emulator checkouts must
 remain unchanged.
 
-Run `make verify` for the automated qualification available at this stage.
-This does not qualify emulator behavior or a future firmware image.
+Run `make verify` for unit, source, compiler, linker, runtime, complete-image,
+headless boot, hostfs, and limited ZDS-reference parity checks.
 
 ## Emulator gate
 
 Every emulator-coupled change must remain uncommitted and unpushed until the
-user runs `scripts/run_emulator.sh`, verifies the interactive behavior described
-in the README, and explicitly approves committing it. Automated verification
-does not waive this gate.
+user runs the appropriate launcher and explicitly approves committing it. For
+the current custom firmware batch, use `make run-custom-emulator` and follow the
+README checklist. Automated verification does not waive this gate.

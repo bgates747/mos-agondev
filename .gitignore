@@ -10,4 +10,5 @@ upstream/
 emulator/
 projects/*/bin/
 projects/*/obj/
+projects/*/generated/
 projects/mos-port/worktree/

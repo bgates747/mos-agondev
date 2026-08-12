@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Copy tracked agon-mos files and apply the validated C probe edits.
+"""Copy tracked agon-mos files and apply validated initial-port edits.
 
 The upstream worktree is read only. The destination must not exist, including
 as a broken symlink. All edits are byte-oriented so source newline conventions
@@ -24,8 +24,14 @@ PATCHED_PATHS = (
     "src/defines.h",
     "main.c",
     "src/mos.c",
+    "src/mos_editor.c",
     "src/clock.h",
+    "src/timer.c",
+    "src/uart.c",
     "src_fatfs/diskio.c",
+    "src/mos_api.asm",
+    "src/sd.asm",
+    "src/vdp_protocol.asm",
 )
 
 
@@ -162,8 +168,71 @@ def _patch_defines(data: bytes) -> bytes:
 
 
 def _patch_main(data: bytes) -> bytes:
-    return _replace_exact(
+    newline = _uniform_newline(data, "main.c portability edits")
+    result = _replace_exact(
         data,
+        b"#include <eZ80.h>",
+        b"#include <ez80.h>",
+        1,
+        "main.c eZ80 include casing",
+    )
+    result = _replace_exact(
+        result,
+        b"#include <CTYPE.h>",
+        b"#include <ctype.h>",
+        1,
+        "main.c ctype include casing",
+    )
+    result = _replace_exact(
+        result,
+        b"#include <String.h>",
+        b"#include <string.h>",
+        1,
+        "main.c string include casing",
+    )
+    old_quickrand = (
+        b"int quickrand(void) {"
+        + newline
+        + b'\tasm("ld a,r\\n"'
+        + newline
+        + b'\t\t"ld hl,0\\n"'
+        + newline
+        + b'\t\t"ld l,a\\n");'
+        + newline
+        + b"}"
+    )
+    new_quickrand = (
+        b"int quickrand(void) {"
+        + newline
+        + b"#ifdef AGONDEV"
+        + newline
+        + b"\tunsigned char value;"
+        + newline
+        + b'\t__asm__ volatile ("ld a,r" : "=a"(value) : : "cc");'
+        + newline
+        + b"\treturn value;"
+        + newline
+        + b"#else"
+        + newline
+        + b'\tasm("ld a,r\\n"'
+        + newline
+        + b'\t\t"ld hl,0\\n"'
+        + newline
+        + b'\t\t"ld l,a\\n");'
+        + newline
+        + b"#endif"
+        + newline
+        + b"}"
+    )
+    result = _replace_exact(
+        result,
+        old_quickrand,
+        new_quickrand,
+        1,
+        "main.c quickrand explicit AgonDev return",
+    )
+    return _replace_exact(
+        result,
         b"extern void _heapbot[];",
         b"extern unsigned char _heapbot[];",
         1,
@@ -172,13 +241,44 @@ def _patch_main(data: bytes) -> bytes:
 
 
 def _patch_mos(data: bytes) -> bytes:
-    return _replace_exact(
+    result = _replace_exact(
         data,
+        b"#include <eZ80.h>",
+        b"#include <ez80.h>",
+        1,
+        "src/mos.c eZ80 include casing",
+    )
+    return _replace_exact(
+        result,
         b"extern void sysvars[];",
         b"extern unsigned char sysvars[];",
         1,
         "src/mos.c sysvars declaration",
     )
+
+
+def _patch_ez80_include_casing(data: bytes, description: str) -> bytes:
+    return _replace_exact(
+        data,
+        b"#include <eZ80.h>",
+        b"#include <ez80.h>",
+        1,
+        description,
+    )
+
+
+def _patch_mos_editor(data: bytes) -> bytes:
+    return _patch_ez80_include_casing(
+        data, "src/mos_editor.c eZ80 include casing"
+    )
+
+
+def _patch_timer(data: bytes) -> bytes:
+    return _patch_ez80_include_casing(data, "src/timer.c eZ80 include casing")
+
+
+def _patch_uart(data: bytes) -> bytes:
+    return _patch_ez80_include_casing(data, "src/uart.c eZ80 include casing")
 
 
 def _uniform_newline(data: bytes, description: str) -> bytes:
@@ -218,12 +318,67 @@ def _patch_diskio(data: bytes) -> bytes:
     )
 
 
+def _patch_long_branch(
+    data: bytes, old_instruction: bytes, new_instruction: bytes, description: str
+) -> bytes:
+    """Make a ZDS-relaxed branch explicit for GNU as.
+
+    ZDS silently emits a long conditional jump for these out-of-range JR
+    instructions.  GNU as diagnoses the range instead.  An explicit JP is
+    valid in both dialects and makes the maintained intent visible.
+    """
+
+    return _replace_exact(data, old_instruction, new_instruction, 1, description)
+
+
+def _patch_mos_api_asm(data: bytes) -> bytes:
+    return _patch_long_branch(
+        data,
+        b"\t\t\tJR\tNC, $F\t\t\t; Yes, so jump to next block",
+        b"\t\t\tJP\tNC, $F\t\t\t; Yes, so jump to next block",
+        "src/mos_api.asm out-of-range FatFS dispatch branch",
+    )
+
+
+def _patch_sd_asm(data: bytes) -> bytes:
+    newline = _uniform_newline(data, "src/sd.asm long branch")
+    return _patch_long_branch(
+        data,
+        b"\t\tPUSH\t\tAF\t\t; Save res1 to be returned"
+        + newline
+        + b"\t\tCP\t\tA,SD_READY"
+        + newline
+        + b"\t\tJR\t\tNZ,$out3",
+        b"\t\tPUSH\t\tAF\t\t; Save res1 to be returned"
+        + newline
+        + b"\t\tCP\t\tA,SD_READY"
+        + newline
+        + b"\t\tJP\t\tNZ,$out3",
+        "src/sd.asm out-of-range write-error branch",
+    )
+
+
+def _patch_vdp_protocol_asm(data: bytes) -> bytes:
+    return _patch_long_branch(
+        data,
+        b"\t\t\tJR\tZ, vdp_protocol_state3",
+        b"\t\t\tJP\tZ, vdp_protocol_state3",
+        "src/vdp_protocol.asm out-of-range state branch",
+    )
+
+
 PATCHERS: dict[str, Callable[[bytes], bytes]] = {
     "src/defines.h": _patch_defines,
     "main.c": _patch_main,
     "src/mos.c": _patch_mos,
+    "src/mos_editor.c": _patch_mos_editor,
     "src/clock.h": _patch_clock,
+    "src/timer.c": _patch_timer,
+    "src/uart.c": _patch_uart,
     "src_fatfs/diskio.c": _patch_diskio,
+    "src/mos_api.asm": _patch_mos_api_asm,
+    "src/sd.asm": _patch_sd_asm,
+    "src/vdp_protocol.asm": _patch_vdp_protocol_asm,
 }
 
 
@@ -268,7 +423,7 @@ def prepare_worktree(
     upstream: Path,
     destination: Path,
 ) -> int:
-    """Copy every tracked regular file and apply exactly five patch groups."""
+    """Copy every tracked regular file and apply the validated patch groups."""
 
     try:
         repository_root = repository_root.expanduser().resolve(strict=True)
@@ -330,6 +485,78 @@ def prepare_worktree(
     return len(tracked)
 
 
+def check_worktree(
+    repository_root: Path,
+    upstream: Path,
+    destination: Path,
+) -> int:
+    """Verify that an existing destination exactly matches a prepared copy."""
+
+    try:
+        repository_root = repository_root.expanduser().resolve(strict=True)
+    except FileNotFoundError as exc:
+        raise PreparationError(f"repository root does not exist: {repository_root}") from exc
+    if not repository_root.is_dir():
+        raise PreparationError(f"repository root is not a directory: {repository_root}")
+
+    upstream = _validate_upstream(upstream)
+    destination = _absolute_from_root(repository_root, destination)
+    try:
+        destination.relative_to(repository_root)
+    except ValueError as exc:
+        raise PreparationError(
+            f"destination must remain inside repository root: {destination}"
+        ) from exc
+    if not destination.is_dir() or destination.is_symlink():
+        raise PreparationError(f"destination is not a real directory: {destination}")
+
+    tracked = _safe_tracked_paths(upstream)
+    tracked_names = {path.as_posix() for path in tracked}
+    missing_patch_sources = sorted(set(PATCHED_PATHS) - tracked_names)
+    if missing_patch_sources:
+        raise PreparationError(
+            "required patch files are not tracked: " + ", ".join(missing_patch_sources)
+        )
+    patched_bytes = _validated_patch_bytes(upstream)
+
+    actual_names: set[str] = set()
+    for path in sorted(destination.rglob("*")):
+        relative_name = path.relative_to(destination).as_posix()
+        metadata = path.lstat()
+        if stat.S_ISLNK(metadata.st_mode):
+            raise PreparationError(f"destination contains symbolic link: {relative_name}")
+        if stat.S_ISDIR(metadata.st_mode):
+            continue
+        if not stat.S_ISREG(metadata.st_mode):
+            raise PreparationError(f"destination contains non-regular file: {relative_name}")
+        actual_names.add(relative_name)
+
+    missing = sorted(tracked_names - actual_names)
+    extra = sorted(actual_names - tracked_names)
+    if missing:
+        raise PreparationError("destination is missing tracked files: " + ", ".join(missing))
+    if extra:
+        raise PreparationError("destination contains extra files: " + ", ".join(extra))
+
+    for relative in tracked:
+        relative_name = relative.as_posix()
+        source = upstream.joinpath(*relative.parts)
+        target = destination.joinpath(*relative.parts)
+        expected = patched_bytes.get(relative_name)
+        if expected is None:
+            expected = source.read_bytes()
+        if target.read_bytes() != expected:
+            raise PreparationError(f"destination content differs: {relative_name}")
+        expected_mode = stat.S_IMODE(source.stat().st_mode) & 0o111
+        actual_mode = stat.S_IMODE(target.stat().st_mode) & 0o111
+        if actual_mode != expected_mode:
+            raise PreparationError(
+                f"destination executable mode differs: {relative_name} "
+                f"(expected {expected_mode:o}, found {actual_mode:o})"
+            )
+    return len(tracked)
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -352,6 +579,11 @@ def _parser() -> argparse.ArgumentParser:
         type=Path,
         help="copy destination (default: projects/mos-port/worktree)",
     )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="verify an existing destination without changing it",
+    )
     return parser
 
 
@@ -363,13 +595,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         if not upstream.is_absolute():
             upstream = repository_root / upstream
         destination = args.destination or Path("projects/mos-port/worktree")
-        count = prepare_worktree(repository_root, upstream, destination)
+        if args.check:
+            count = check_worktree(repository_root, upstream, destination)
+        else:
+            count = prepare_worktree(repository_root, upstream, destination)
     except (OSError, PreparationError, subprocess.SubprocessError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
     output = _absolute_from_root(repository_root, destination)
-    print(f"prepared {count} tracked files at {output}")
+    action = "verified" if args.check else "prepared"
+    print(f"{action} {count} tracked files at {output}")
     return 0
 
 

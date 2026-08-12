@@ -1,6 +1,6 @@
 # Assembly Compatibility Strategy
 
-Status: initial approach selected for experiment
+Status: strict compatibility frontend accepted for ongoing use
 Decision owner: project author, delegating the initial technical choice to Codex
 
 ## 1. Purpose and maintenance principle
@@ -17,11 +17,11 @@ limit accidental coupling. Replacing them with hand-maintained global names
 would enlarge the visible namespace, create collision risk, add review noise,
 and impose a permanent maintenance tax unrelated to firmware behavior.
 
-The author advises taking the most conservative approach and has deferred the
-choice of the initial experiment to Codex. The selected first attempt is a
-strict Python compatibility preprocessor that retains ZDS-oriented maintained
-source and emits generated GNU-as input. This is provisional until its
-translation and diagnostic behavior pass the gates described below.
+The author advised taking the most conservative approach and deferred the
+initial technical choice to Codex. The resulting strict Python compatibility
+frontend retains ZDS-oriented maintained source and emits generated GNU-as
+input. It has passed the translation, diagnostic, object, and full-corpus gates
+described below and is accepted as normal build infrastructure.
 
 ## 2. Two distinct kinds of tooling
 
@@ -46,42 +46,45 @@ strict, documented, fast, stable across includes, and covered by semantic tests.
 It must provide useful source locations and must fail rather than guess about
 unsupported or ambiguous syntax.
 
-Local-label scoping is a strong candidate for ongoing compatibility support.
-Whether other ZDS forms—numeric literals, macros, data directives, conditionals,
-or section declarations—remain frontend features or receive one-time source
-conversion should be decided construct by construct. There is no requirement
-that every incompatibility use the same mechanism.
+Local-label scoping is ongoing compatibility behavior. The implementation also
+retains the audited MOS forms of numeric literals, macros, data directives,
+conditionals, section declarations, includes, and public structure definitions.
+Three conditional branches whose range depended on ZDS relaxation remain
+explicit one-time preparation edits; not every incompatibility is forced
+through the frontend.
 
 ## 3. Options considered
 
-### 3.1 Strict ZDS-to-GAS source preprocessor — selected initial attempt
+### 3.1 Strict ZDS-to-GAS source frontend — accepted implementation
 
 Maintain ZDS-oriented source and generate GNU-as source during the build. A
 two-pass parser identifies scope and macro boundaries, builds a local-symbol
 table, validates every definition and reference, then renders deterministic
 assembler input plus a source/mapping manifest.
 
-The proposed initial label mappings are:
+The implemented label mappings are:
 
 | Maintained-source construct | Generated GNU-as form |
 |---|---|
-| anonymous `$$:` | a reusable numeric label such as `99:` |
-| anonymous `$F` / `$B` | `99f` / `99b` |
+| anonymous `$$:` | deterministic generated `.Lzds_...` identity |
+| anonymous `$F` / `$B` | nearest generated forward/backward identity |
 | named `$loop` inside `SCOPE` | deterministic `.Lzds_<file>_<scope>_loop` |
-| macro-local `$$loop` | GNU macro `LOCAL` or `.L...\@` |
+| suffix local `loop?` inside `SCOPE` | deterministic scope-private `.Lzds_...` identity |
+| macro-local `$$loop` | expansion-private `.L...\@` identity |
 | ordinary public/private label | unchanged |
 
-GNU numeric labels are specifically designed for repeated definitions and
-nearest forward/backward resolution, so they preserve the anonymous-label
-idiom without inventing globally unique names. GNU `.L` symbols remain local
-and normally disappear from the linked symbol table. The generated mangled
-spellings are implementation details, not maintained names.
+The frontend resolves nearest forward/backward identities explicitly and emits
+GNU `.L` symbols, which remain local and normally disappear from the linked
+symbol table. This avoids reserving or colliding with any numeric label that a
+maintainer may use natively. Generated spellings are implementation details,
+not maintained names.
 
-The installed AgonDev GNU assembler was directly tested with repeated `99:`
-definitions and `99f`/`99b` references. It was also tested with two expansions
-of a macro using both `LOCAL` and `\@`-derived labels; the expansions resolved
-independently and did not expose the macro-local symbols in the object symbol
-table.
+The installed AgonDev GNU assembler was directly tested with repeated numeric
+labels and directional references as an initial mechanism. The frontend emits
+unique `.L` identities instead, avoiding collisions with native numeric labels.
+GAS was also tested with repeated macro expansions; `\@`-derived identities
+resolved independently and did not expose macro-local symbols in the object
+symbol table.
 
 Advantages include conservative source preservation, one normal object per
 source file, deterministic ordering, ordinary linker behavior, and a bounded
@@ -156,51 +159,98 @@ than the initial plan.
 
 ## 4. Selected frontend behavior
 
-The initial frontend should preserve input line count wherever practical and
-emit line directives or a sidecar mapping when exact preservation is impossible.
-Generated files should contain a header naming the input commit and frontend
-version and should never be edited manually.
+The accepted implementation is `projects/mos-port/tools/zds2gas.py`. It runs
+lexical analysis and rendering as separate passes, distinguishing code,
+comments, quoted strings, labels, expressions, macro definitions and calls,
+includes, and directives. It fails on ambiguous dollar syntax and unresolved,
+duplicate, or case-mismatched local symbols instead of guessing. Diagnostics
+from the frontend cite the original source path and line with a stable error
+code.
 
-It should recognize tokens rather than run unrestricted regular-expression
-replacement. At minimum it must distinguish code, labels, expressions,
-comments, quoted strings, macro definitions, macro invocations, includes, and
-conditional regions sufficiently to make local-symbol transformation safe.
+`INCLUDE` is a textual operation before analysis. A `SCOPE` begun in an include
+therefore affects following included or caller text just as it did under ZDS.
+An included `END` returns to its caller, while the root `END` terminates the
+translation unit. Lookup accepts an exact name or one unique case-insensitive
+match to preserve the historical Windows behavior. Ambiguous case-folded names,
+absolute paths, symlinked files, unresolved paths, and targets outside the
+allow-listed source or toolchain roots are rejected. The manifest records every
+include edge, every contributing file and hash, and every generated-to-original
+line mapping.
 
-The frontend should reject malformed or ambiguous input, including a named
-local outside a scope, duplicate named locals within a scope, unresolved local
-references, nested or otherwise unsupported scopes, ambiguous macro-local
-syntax, and local-label forms it has not explicitly implemented. Its diagnostic
-should cite the original file, line, construct, and scope.
+Generated files are disposable and always newline-terminated. Their header
+names the frontend schema, translation unit, pinned `agon-mos` commit, and hash
+of the expanded input. The manifest records matching output hashes; the build
+also makes the pinned baseline record an explicit generation prerequisite.
+Generated files must never be edited manually.
 
-Source names need not be forced to remain ZDS syntax forever. The supported
-language may deliberately allow both the familiar form and native GNU idioms:
-numeric `1f`/`1b` labels, `.L` labels, and GNU macro-local constructs should
-pass through. This lets maintainers use anonymous-label idioms naturally and
-adopt GAS features incrementally without a flag day.
+The audited source-language surface includes:
+
+- `$name` and `name?` locals with case-exact scope lookup;
+- nearest-definition `$$:`, `$F`, and `$B` anonymous labels using unique GNU
+  `.L` identities rather than a reserved numeric label;
+- expansion-private `$$name` macro locals and case-sensitive macro names and
+  parameters;
+- immutable `EQU`/`.set` handling, with identical duplicates elided and
+  conflicting definitions rejected;
+- the MOS numeric literals, sections, conditional directives, data widths,
+  reserves, macro token concatenation, and wide-register copy forms exercised
+  by the pinned source; and
+- `.STRUCT`/`.ENDSTRUCT` definitions containing literal-sized `DS` members and
+  previously defined `.TAG` types. These emit absolute member/size symbols and
+  allocate no storage.
+
+Native GNU constructs such as numeric `1f`/`1b` labels and `.L` symbols remain
+available where they do not conflict with an explicitly translated form. This
+allows incremental adoption without globalizing maintained ZDS locals.
+
+The assembly recipe invokes `projects/mos-port/tools/assemble_zds.py` instead
+of calling GAS directly. Before execution, this wrapper validates the manifest
+schema, normalized relative names, duplicate outputs, regular-file and symlink
+constraints, output hash, line-map length, and original source locations. It
+then appends the validated generated source to the requested assembler command.
+Exact GAS references to that generated path are rewritten through the manifest,
+including references to flattened include lines. The assembler's exit status
+and stdout are preserved; unrelated, malformed, binary, or honestly unmapped
+stderr remains byte-for-byte unchanged.
+
+The boundary is deliberate. Nested macros or structures, `SCOPE` and scoped
+`$name`/`name?` locals inside macros, forward or recursive `.TAG` references,
+nonliteral structure sizes, and structure storage directives other than `DS`
+and prior `.TAG` are unsupported. Conditional bodies are transformed lexically
+and evaluated by GAS, so mutually exclusive branches must still use distinct
+definition names. Other unaudited ZDS syntax remains unsupported until it gains
+positive, negative, object, and corpus tests.
 
 ## 5. Validation strategy and decision gate
 
-The frontend should have lexical unit tests, golden source-to-source fixtures,
-negative diagnostic fixtures, assembler/object tests, and subsystem tests drawn
-from real MOS sources. Tests must include repeated anonymous labels, multiple
-forward references, backward loops, reused named locals across adjacent scopes,
-macro expansion at multiple call sites, includes, conditional assembly, and
-mixed public/local references.
+The acceptance suite includes lexical and source-location unit tests, exact
+positive and negative golden fixtures, nested include/case/`END` tests,
+conditionals, repeated anonymous labels, multiple forward references, backward
+loops, adjacent scopes, repeated macro expansion, and mixed public/local
+references. Object checks cover emitted bytes, section behavior, public symbol
+binding, undefined-symbol relocation, local-symbol visibility, resolved branch
+targets, and disassembly. A standalone object test validates the public
+`mos_api.inc` structure offsets even though that include is not consumed by the
+15 firmware assembly roots.
 
-Object-level checks should compare sections, symbol binding, relocations,
-branch targets, and disassembly. Where a same-source ZDS object or firmware
-binary is available, binary comparison is valuable evidence, especially for
-instruction selection and section order; it is validation rather than the
-mechanism used to recover ordering.
+Wrapper tests cover valid root and included-source remapping, a real AgonDev GAS
+failure, optional columns and line endings, non-UTF-8 continuation data,
+unmapped and malformed diagnostics, exit/stdout preservation, stale hashes,
+schema errors, traversal, duplicate outputs, external generated sources, and
+symlinks. The deterministic corpus test independently translates the tree twice
+and assembles every generated root.
 
-The initial approach is accepted for continued use only if representative MOS
-subsystems assemble without maintained-source globalization, diagnostics map
-cleanly back to source, generated output is deterministic, and object-level
-evidence shows preserved control flow and layout. If those criteria fail, the
-next choices are selective native-GAS conversion for simple idioms, a limited
-macro-wrapper technique, or reassessment of an assembler extension. The
-separate-object approach remains available only for isolated cases where its
-ordering cost is explicitly justified.
+The decision gate passed: all 15 build-critical assembly roots translate and
+assemble without maintained-source globalization; generated output and
+provenance are deterministic; GAS diagnostics map to original paths and lines;
+and object evidence verifies labels, relocations, control flow, and layout. The
+same objects link into the verified 102,059-byte AgonDev MOS firmware image.
+The strict frontend is therefore accepted for ongoing use on its audited
+language surface.
 
-Implementation work for this decision remains exclusively under `PORT-101` in
-the authoritative `TODO.md`.
+Binary comparison with a same-source ZDS build remains useful future evidence,
+but is not used to infer source order or to broaden the accepted syntax. Three
+out-of-range conditional branches remain reviewed one-time source-preparation
+edits because GAS does not perform ZDS's silent branch relaxation. Physical
+hardware qualification and behavioral emulator expansion are separate from the
+assembly-language compatibility decision.

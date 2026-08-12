@@ -75,10 +75,25 @@ class LocalScriptTests(unittest.TestCase):
         self._write(
             root,
             "main.c",
-            b"int quickrand(void) { return 0; }\r\n"
+            b"#include <eZ80.h>\r\n"
+            b"#include <defines.h>\r\n"
+            b"#include <CTYPE.h>\r\n"
+            b"#include <String.h>\r\n"
+            b"int quickrand(void) {\r\n"
+            b'\tasm("ld a,r\\n"\r\n'
+            b'\t\t"ld hl,0\\n"\r\n'
+            b'\t\t"ld l,a\\n");\r\n'
+            b"}\r\n"
             b"extern void _heapbot[];\r\n",
         )
-        self._write(root, "src/mos.c", b"extern void sysvars[];\r\n")
+        self._write(
+            root,
+            "src/mos.c",
+            b"#include <eZ80.h>\r\nextern void sysvars[];\r\n",
+        )
+        self._write(root, "src/mos_editor.c", b"#include <eZ80.h>\r\n")
+        self._write(root, "src/timer.c", b"#include <eZ80.h>\r\n")
+        self._write(root, "src/uart.c", b"#include <eZ80.h>\r\n")
         self._write(
             root,
             "src/clock.h",
@@ -94,6 +109,23 @@ class LocalScriptTests(unittest.TestCase):
             b"DWORD get_fattime(void) {\r\n"
             b"\tyr =  (tstruct.year - EPOCH_YEAR) << 25;\r\n"
             b"}\r\n",
+        )
+        self._write(
+            root,
+            "src/mos_api.asm",
+            b"\t\t\tJR\tNC, $F\t\t\t; Yes, so jump to next block\r\n",
+        )
+        self._write(
+            root,
+            "src/sd.asm",
+            b"\t\tPUSH\t\tAF\t\t; Save res1 to be returned\r\n"
+            b"\t\tCP\t\tA,SD_READY\r\n"
+            b"\t\tJR\t\tNZ,$out3\r\n",
+        )
+        self._write(
+            root,
+            "src/vdp_protocol.asm",
+            b"\t\t\tJR\tZ, vdp_protocol_state3\r\n",
         )
         self._write(root, "tracked.bin", b"\x00preserve\r\n\xff\n")
         self._write(root, "untracked.txt", b"must not be copied\n")
@@ -168,7 +200,7 @@ class LocalScriptTests(unittest.TestCase):
         self.assertFalse((self.repository / "toolchains" / "agondev").exists())
         self.assertTrue(collision.is_dir())
 
-    def test_prepare_copies_only_tracked_bytes_and_validates_five_edits(self) -> None:
+    def test_prepare_copies_only_tracked_bytes_and_validates_port_edits(self) -> None:
         tracked = subprocess.run(
             ["git", "-C", os.fspath(self.mos), "ls-files", "-z"],
             check=True,
@@ -203,16 +235,45 @@ class LocalScriptTests(unittest.TestCase):
             b"extern unsigned char _heapbot[];",
             (destination / "main.c").read_bytes(),
         )
+        main = (destination / "main.c").read_bytes()
+        self.assertIn(b"#include <ez80.h>\r\n", main)
+        self.assertIn(b"#include <ctype.h>\r\n", main)
+        self.assertIn(b"#include <string.h>\r\n", main)
+        self.assertNotIn(b"#include <eZ80.h>", main)
+        self.assertNotIn(b"#include <CTYPE.h>", main)
+        self.assertNotIn(b"#include <String.h>", main)
+        self.assertIn(
+            b'__asm__ volatile ("ld a,r" : "=a"(value) : : "cc");\r\n'
+            b"\treturn value;",
+            main,
+        )
+        self.assertIn(b"#ifdef AGONDEV", main)
         self.assertIn(
             b"extern unsigned char sysvars[];",
             (destination / "src" / "mos.c").read_bytes(),
         )
+        for relative in ("src/mos.c", "src/mos_editor.c", "src/timer.c", "src/uart.c"):
+            source = (destination / relative).read_bytes()
+            self.assertIn(b"#include <ez80.h>", source)
+            self.assertNotIn(b"#include <eZ80.h>", source)
         clock = (destination / "src" / "clock.h").read_bytes()
         self.assertIn(b"#include <defines.h>\r\n\r\n#define EPOCH_YEAR", clock)
         self.assertNotIn(b"\n", clock.replace(b"\r\n", b""))
         self.assertIn(
             b"(DWORD)(tstruct.year - EPOCH_YEAR) << 25",
             (destination / "src_fatfs" / "diskio.c").read_bytes(),
+        )
+        self.assertIn(
+            b"JP\tNC, $F",
+            (destination / "src" / "mos_api.asm").read_bytes(),
+        )
+        self.assertIn(
+            b"JP\t\tNZ,$out3",
+            (destination / "src" / "sd.asm").read_bytes(),
+        )
+        self.assertIn(
+            b"JP\tZ, vdp_protocol_state3",
+            (destination / "src" / "vdp_protocol.asm").read_bytes(),
         )
 
         for relative_name, original in source_snapshot.items():
@@ -247,6 +308,92 @@ class LocalScriptTests(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
         self.assertIn("DWORD shift", result.stderr)
         self.assertFalse(os.path.lexists(destination))
+
+    def test_prepare_check_accepts_exact_tree_without_changing_it(self) -> None:
+        destination = self.repository / "projects" / "mos-port" / "checked-worktree"
+        prepared = self._run(
+            PREPARE_SCRIPT,
+            "--root",
+            self.repository,
+            "--source",
+            self.mos,
+            "--destination",
+            destination,
+        )
+        self.assertEqual(prepared.returncode, 0, prepared.stderr)
+        before = {
+            path.relative_to(destination).as_posix(): (
+                path.read_bytes(),
+                path.stat().st_mode,
+            )
+            for path in destination.rglob("*")
+            if path.is_file()
+        }
+
+        checked = self._run(
+            PREPARE_SCRIPT,
+            "--root",
+            self.repository,
+            "--source",
+            self.mos,
+            "--destination",
+            destination,
+            "--check",
+        )
+        self.assertEqual(checked.returncode, 0, checked.stderr)
+        self.assertIn("verified", checked.stdout)
+        after = {
+            path.relative_to(destination).as_posix(): (
+                path.read_bytes(),
+                path.stat().st_mode,
+            )
+            for path in destination.rglob("*")
+            if path.is_file()
+        }
+        self.assertEqual(after, before)
+
+    def test_prepare_check_rejects_content_extra_missing_mode_and_symlink_drift(self) -> None:
+        mutations = ("content", "extra", "missing", "mode", "symlink")
+        for mutation in mutations:
+            with self.subTest(mutation=mutation):
+                destination = (
+                    self.repository / "projects" / "mos-port" / f"drift-{mutation}"
+                )
+                prepared = self._run(
+                    PREPARE_SCRIPT,
+                    "--root",
+                    self.repository,
+                    "--source",
+                    self.mos,
+                    "--destination",
+                    destination,
+                )
+                self.assertEqual(prepared.returncode, 0, prepared.stderr)
+                if mutation == "content":
+                    (destination / "tracked.bin").write_bytes(b"drift\n")
+                elif mutation == "extra":
+                    (destination / "extra.txt").write_text("extra\n", encoding="utf-8")
+                elif mutation == "missing":
+                    (destination / "tracked.bin").unlink()
+                elif mutation == "mode":
+                    (destination / "tracked.bin").chmod(0o744)
+                else:
+                    target = destination / "tracked.bin"
+                    target.unlink()
+                    target.symlink_to(self.mos / "tracked.bin")
+
+                checked = self._run(
+                    PREPARE_SCRIPT,
+                    "--root",
+                    self.repository,
+                    "--source",
+                    self.mos,
+                    "--destination",
+                    destination,
+                    "--check",
+                )
+                self.assertEqual(checked.returncode, 2)
+                self.assertIn("destination", checked.stderr)
 
 
 if __name__ == "__main__":

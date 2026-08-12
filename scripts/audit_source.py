@@ -136,7 +136,7 @@ def build_audit(mos: Path, agondev: Path, fab: Path, docs: Path) -> dict[str, An
         },
         "measured_probes": {
             "agondev_c_translation_units": 16,
-            "agondev_c_loadable_bytes_before_runtime_and_assembly": 88020,
+            "agondev_c_loadable_bytes_before_runtime_and_assembly": 88054,
             "zds_c_loadable_bytes": 95238,
             "firmware_probe_sha256": (
                 "28528ac57eb024dfa2afad063db102cb11d115c87c2d3dfaf65bdb27a47647a9"
