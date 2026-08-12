@@ -29,3 +29,13 @@ removed from this file.
   the exact path-dependent Fab artifacts or replace their byte hashes with a
   transparent reproducible-artifact policy. Then rerun `make baseline-check`
   from only documented public inputs.
+- [ ] **PORT-207** — Perform a whole-project prior-art audit of
+  [`tomm/rainbow-mos`](https://github.com/tomm/rainbow-mos), pinned to the
+  reviewed commit. Compare its lineage and supported MOS version; direct
+  GNU/AgonDev source-port strategy; assembly dialect changes; startup and
+  linker layout; compiler flags and `ff.c` register-allocation workaround;
+  libc, formatter, and runtime selection; API and ABI choices; RAM/ROM size and
+  performance work; emulator/hardware evidence; and maintenance tradeoffs with
+  this project's corpus-preserving MOS 3 frontend. Record which techniques are
+  already shared, worth adopting, unsuitable, or require follow-up tests, and
+  add durable credit and license attribution before incorporating any code.
