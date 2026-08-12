@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.py[cod]
+
+# Local links into installed, read-only checkouts.
+toolchains/
+upstream/
+
+# Generated build and emulator state.
+emulator/
+projects/*/bin/
+projects/*/obj/
+projects/mos-port/worktree/

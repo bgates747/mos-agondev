@@ -1,0 +1,6 @@
+#ifndef MOS_AGONDEV_LOWERCASE_EZ80_H
+#define MOS_AGONDEV_LOWERCASE_EZ80_H
+
+#include "eZ80.h"
+
+#endif

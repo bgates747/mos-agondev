@@ -1,0 +1,88 @@
+{
+  "measured_probes": {
+    "agondev_c_loadable_bytes_before_runtime_and_assembly": 88020,
+    "agondev_c_translation_units": 16,
+    "firmware_probe_sha256": "28528ac57eb024dfa2afad063db102cb11d115c87c2d3dfaf65bdb27a47647a9",
+    "zds_c_loadable_bytes": 95238
+  },
+  "repositories": {
+    "agon_docs": {
+      "commit": "f9806bd3cbff6ed5d1c08bef1d51fed11764b86b",
+      "describe": "f9806bd",
+      "dirty": false
+    },
+    "agon_mos": {
+      "commit": "5f67b1ca77eb7a77d3b37cc7b029db51f0d1548e",
+      "describe": "v3.0.2-1-g5f67b1c",
+      "dirty": false
+    },
+    "agondev": {
+      "commit": "b67ab2444a63267a42193f204889d466765d8dd2",
+      "describe": "nightly",
+      "dirty": false
+    },
+    "fab_agon_emulator": {
+      "commit": "98bbb392b75b196171cc620b60839220e5ce53ed",
+      "describe": "1.2.2",
+      "dirty": false
+    }
+  },
+  "schema": 1,
+  "source": {
+    "assembly_and_include_files": 20,
+    "assembly_and_include_lines": 6680,
+    "c_files": 16,
+    "c_lines": 31229,
+    "zds_constructs": {
+      "binary_suffix_literals": 26,
+      "define_space_directives": 14,
+      "dl_or_dw24_directives": 21,
+      "dollar_dollar_local_definitions": 64,
+      "forward_backward_local_refs": 76,
+      "percent_hex_literals": 179,
+      "scope_directives": 19,
+      "segment_directives": 15,
+      "wide_register_copy_pseudo_ops": 14,
+      "zds_macro_definitions": 17
+    }
+  },
+  "stock_platform": {
+    "fab_executable": {
+      "bytes": 1895504,
+      "sha256": "a67e9fa52cdc55816e1c3d4224defa2c8b140c7ee4f48178695b54f6743fe5dc"
+    },
+    "map": {
+      "bytes": 167185,
+      "sha256": "d69e60bbce61a7b4b3eef318ba395f11c4e1a5b585755755113992dc94edcb86"
+    },
+    "mos": {
+      "bytes": 108490,
+      "sha256": "d564243283972690933a4554296ad6202ca4ef54572279533a942960846bebae"
+    },
+    "space_allocation": {
+      "ram": {
+        "base": "0x0bc000",
+        "capacity_bytes": 16384,
+        "top": "0x0bcbd4",
+        "unused_bytes": 13355,
+        "used_bytes": 3029
+      },
+      "rom": {
+        "base": "0x000000",
+        "capacity_bytes": 131072,
+        "top": "0x01a7c9",
+        "unused_bytes": 22731,
+        "used_bytes": 108341
+      }
+    },
+    "vdp": {
+      "bytes": 10279496,
+      "sha256": "cfd0aad2108e074af207f5bc6f1b73976097851405bc7c3f8949c7a165df2cb3"
+    }
+  },
+  "toolchain": {
+    "agondev_config": "1.0",
+    "binutils_ld": "GNU ld (GNU Binutils) 2.45",
+    "clang": "clang version 15.0.7 (https://github.com/AgonPlatform/agon-llvm-project.git c76386c0083e6a6236ff774275227e2389f85538)"
+  }
+}

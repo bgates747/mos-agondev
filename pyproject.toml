@@ -1,0 +1,9 @@
+[project]
+name = "mos-agondev-study"
+version = "0.1.0"
+description = "Reproducible feasibility study for building Agon MOS with AgonDev"
+requires-python = ">=3.14"
+dependencies = []
+
+[tool.unittest]
+start-directory = "tests"
