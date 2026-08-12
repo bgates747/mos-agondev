@@ -3,6 +3,14 @@
 Status: strict compatibility frontend accepted for ongoing use
 Decision owner: project author, delegating the initial technical choice to Codex
 
+Scope disclaimer: this strategy does not claim general ZDS II compatibility.
+The implemented frontend is empirical and corpus-driven: it covers the syntax
+observed in maintained MOS plus explicitly tested public-include forms. The ZDS
+II language, directive set, expression grammar, macro system, and implementation
+quirks have not been exhaustively enumerated or reproduced. “Accepted” below
+always means accepted for the documented audited surface, not accepted as a
+drop-in ZDS II assembler for unrelated projects.
+
 ## 1. Purpose and maintenance principle
 
 The assembly port should preserve as much as practicable of the vocabulary and
@@ -231,6 +239,16 @@ and prior `.TAG` are unsupported. Conditional bodies are transformed lexically
 and evaluated by GAS, so mutually exclusive branches must still use distinct
 definition names. Other unaudited ZDS syntax remains unsupported until it gains
 positive, negative, object, and corpus tests.
+
+Coverage is construct-specific. Evidence for one operand shape, directive
+spelling, macro pattern, or conditional arrangement must not be generalized to
+other members of the same apparent ZDS feature family. A proposed extension
+must begin with a minimal ZDS-semantic fixture, identify whether exact object or
+binary evidence is required, preserve source-mapped failure behavior, and add
+the narrowest parser/renderer rule that can be justified. If semantics cannot
+be established, the frontend must reject the form. One-time incompatibilities
+that should not become maintained language features remain drift-checked
+preparation edits instead.
 
 ## 5. Validation strategy and decision gate
 

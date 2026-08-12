@@ -4,6 +4,15 @@ This repository uses **ZDS-oriented source as maintained source** and
 AgonDev-compatible source as disposable build output. Do not hand-edit the
 generated GNU-as files.
 
+> **Important compatibility limit:** `zds2gas.py` is not a complete ZDS II
+> assembler, nor was it built from an exhaustive survey of every ZDS II
+> directive, convention, or idiom. Its accepted language is the subset found
+> in the maintained MOS corpus plus a small number of explicitly tested public
+> include constructs. Existing MOS building successfully proves that corpus,
+> not arbitrary ZDS II source. A newly introduced ZDS construct may therefore
+> be rejected and must not be assumed compatible merely because ZDS II accepts
+> it.
+
 All commands below run from the `mos-agondev` repository root. The recommended
 layout keeps optional dependency checkouts inside ignored project-root
 directories, but every setup script also accepts an explicit path.
@@ -180,6 +189,12 @@ make verify
    rule that the maintained-source change invalidated. Never silently weaken a
    drift check.
 4. Build with `make firmware-check`. Translation to GNU-as is automatic.
+   If the frontend rejects a new ZDS form, first decide whether it is an
+   ongoing source-language feature or a one-time port adjustment. Extend
+   `zds2gas.py` only for the former, fail closed on ambiguous forms, and add
+   positive, negative, object-level, diagnostic, and full-corpus coverage as
+   applicable. Do not rewrite generated output or silently approximate ZDS
+   behavior.
 5. Run the focused checks relevant to the change, then emulator and hardware
    gates as appropriate. Emulator-coupled changes are subject to the human
    validation and commit-approval rule in `AGENTS.md`.

@@ -6,6 +6,11 @@
 source keeps its scoped, anonymous, and macro-local assembly idioms; a strict
 Python frontend emits disposable GNU-as input during the build.
 
+The frontend is corpus-driven, not a general ZDS II implementation. It supports
+the audited syntax used by current MOS and explicitly tested public includes;
+it does not claim exhaustive coverage of ZDS II directives or idioms. See the
+prominent compatibility warning and extension workflow in `STARTHERE.md`.
+
 The first complete candidate compiles all 16 C units, translates and assembles
 all 15 active assembly roots, links a restricted firmware runtime, and emits a
 fully resolved 102,059-byte MOS image. That image boots with the stock Platform

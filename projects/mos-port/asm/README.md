@@ -7,6 +7,13 @@ preparation preserves them in the disposable copied tree, and the normal build
 writes 15 disposable GNU-as translation units plus a deterministic mapping
 manifest to `projects/mos-port/generated/`.
 
+This is a corpus-driven compatibility frontend, not a complete implementation
+of the ZDS II assembly language. Its behavior was derived from constructs found
+in the maintained MOS tree and a small set of separately exercised public
+include forms; no exhaustive exploration of all ZDS II syntax, directives,
+expression rules, macro facilities, or assembler behavior has been performed.
+Passing the full corpus proves only the declared audited surface below.
+
 The frontend textually expands `INCLUDE` files, so `SCOPE` continues across
 include boundaries and an included `END` returns to its caller. Include lookup
 accepts a unique case-insensitive match, matching the historical Windows build,
@@ -59,6 +66,25 @@ are passed to GAS and transformed lexically, so definitions in mutually
 exclusive branches must still have distinct maintained-source names. Absolute,
 outside-root, symlinked, unresolved, and ambiguously cased includes are also
 rejected.
+
+When maintained MOS introduces a construct outside this boundary, preserve the
+ZDS-oriented source and make the compatibility decision explicitly:
+
+1. establish the intended ZDS behavior with a minimal source fixture and, when
+   available, ZDS object or binary evidence;
+2. classify it as an ongoing language feature or a reviewed one-time
+   preparation edit;
+3. for an ongoing feature, add strict parsing plus positive and negative source
+   tests, original-source diagnostics, and object/relocation/disassembly tests
+   wherever semantics reach emitted code;
+4. add or update real-corpus coverage and run every assembly root; and
+5. reject ambiguous or unverified variants rather than guessing or passing
+   them through to GAS accidentally.
+
+Supporting one spelling or operand shape does not imply support for the rest of
+the similarly named ZDS directive or macro family. Document each intentionally
+accepted expansion of the boundary in this file and in
+`docs/assembly-compatibility-strategy.md`.
 
 Run `make asm-probe` at repository root. All 15 build-critical assembly units
 must translate and assemble. Run the focused acceptance suite with
