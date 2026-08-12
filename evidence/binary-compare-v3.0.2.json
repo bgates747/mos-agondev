@@ -1,0 +1,134 @@
+{
+  "candidate": {
+    "artifact_manifest_sha256": "329f388a5df6a800a4e0dd7ece50d11dc1173107ec1754b3be08bebf99b54d7d",
+    "binary": {
+      "sha256": "60bf67a91c18758dd521427fc28de5df52b77c0362becadbb9dc4497086c1972",
+      "size": 102059
+    },
+    "elf_sha256": "8c75f002813d9cff08b4190514c985760b6f6ea1bd75df9635066907a13867d7",
+    "map_sha256": "a53ef108880454c09e0d27df494d40d76c94e4a1701ed96cf6fc8c79c6daf745",
+    "source": {
+      "head": "5f67b1ca77eb7a77d3b37cc7b029db51f0d1548e",
+      "tracked_dirty": false
+    }
+  },
+  "preparation_paths": [
+    "main.c",
+    "src/clock.h",
+    "src/defines.h",
+    "src/mos.c",
+    "src/mos_api.asm",
+    "src/mos_editor.c",
+    "src/sd.asm",
+    "src/timer.c",
+    "src/uart.c",
+    "src/vdp_protocol.asm",
+    "src_fatfs/diskio.c"
+  ],
+  "raw_image_difference": {
+    "candidate_size": 102059,
+    "common_offset_bytes": 102059,
+    "common_prefix_bytes": 5,
+    "common_suffix_bytes": 0,
+    "first_same_offset_difference": 5,
+    "last_same_offset_difference": 102058,
+    "reference_size": 108490,
+    "same_offset_different_bytes": 98760,
+    "same_offset_equal_bytes": 3299
+  },
+  "reference": {
+    "binary": {
+      "sha256": "d564243283972690933a4554296ad6202ca4ef54572279533a942960846bebae",
+      "size": 108490
+    },
+    "build": {
+      "assembler_options": [
+        "-define:_EZ80ACCLAIM!=1",
+        "-include:<ZDS-standard-includes>",
+        "-list -NOlistmac -name -pagelen:0 -pagewidth:80 -quiet -sdiopt",
+        "-warn -NOdebug -NOigcase -cpu:eZ80F92"
+      ],
+      "compiler_options": [
+        "-define:NDEBUG -define:_EZ80 -define:_EZ80F92",
+        "-define:_EZ80ACCLAIM! -genprintf -NOkeepasm -keeplst -NOlist",
+        "-NOlistinc -NOmodsect -optspeed -promote -NOreduceopt",
+        "-stdinc:<ZDS-standard-includes>",
+        "-usrinc:<release-project-includes>",
+        "-NOmultithread -NOpadbranch -NOdebug -cpu:eZ80F92",
+        "-asmsw:\"",
+        "-define:_EZ80ACCLAIM!=1",
+        "-include:<ZDS-standard-includes>",
+        "-list -NOlistmac -pagelen:0 -pagewidth:80 -quiet -sdiopt -warn",
+        "-NOdebug -NOigcase -cpu:eZ80F92\""
+      ],
+      "date": "Sun Mar 01 19:18:17 2026",
+      "linker": "IEEE 695 OMF Linker Version 6.25 (19073001)",
+      "linker_options": [
+        "-FORMAT=OMF695,INTEL32",
+        "-map -maxhexlen=64 -quiet -warnoverlap -xref -unresolved=fatal",
+        "-sort NAME=ascending -warn -NOdebug -NOigcase"
+      ],
+      "processor": "assembler",
+      "zds": "ZDS II - eZ80Acclaim! 5.3.5 (Build 23020901)"
+    },
+    "map_sha256": "d69e60bbce61a7b4b3eef318ba395f11c4e1a5b585755755113992dc94edcb86",
+    "release": {
+      "commit": "8336409351ee5314e02801a7b72a4f1bb5282519",
+      "name": "v3.0.2",
+      "published_at": "2026-03-01T19:57:36Z",
+      "tag": "v3.0.2",
+      "url": "https://github.com/AgonPlatform/agon-mos/releases/tag/v3.0.2",
+      "variant": "universal Platform MOS"
+    }
+  },
+  "schema": 1,
+  "source_divergence": [
+    {
+      "path": "src/vdp_protocol.asm",
+      "status": "M"
+    },
+    {
+      "path": "tests/test_vdp_protocol_oversize.py",
+      "status": "A"
+    }
+  ],
+  "summary": {
+    "assembly_candidate_bytes": 8053,
+    "assembly_comparison_sha256": "1d19b8e3a9fab5ecc3da7a36f98e0d3e272814bb322c7b623e7303b6c359f14c",
+    "assembly_reference_bytes": 8049,
+    "assembly_slice_classifications": {
+      "exact": 23,
+      "explained-source-divergence": 1,
+      "relocation-only": 27
+    },
+    "assembly_slices": 51,
+    "c_anchor_classifications": {
+      "compiler-codegen-different": 248
+    },
+    "c_anchor_comparison_sha256": "a5ecd77d0d474a8e06a3b493ba8db5efbba046087c750b2df60d8a276fae284a",
+    "c_anchor_ranges": 248,
+    "candidate_defined_symbols": 2710,
+    "candidate_input_ranges": 338,
+    "high_priority_review_entries": 0,
+    "matched_module_ranges": 40,
+    "module_classifications": {
+      "compiler-codegen-different": 23,
+      "exact": 1,
+      "explained-source-divergence": 1,
+      "relocation-only": 15
+    },
+    "module_comparison_sha256": "c9175142dd9441f1ee93e0af9c8fa053a077b58d24235615e11765821bfb9a64",
+    "reordered_symbol_modules": 4,
+    "review_queue_entries": 24,
+    "shared_symbols": 468,
+    "symbol_order_modules": 29,
+    "zds_external_symbols": 506,
+    "zds_module_inventory_status": {
+      "compared": 40,
+      "no-unique-candidate-range": 1,
+      "non-rom-address-space": 11,
+      "reference-zds-library": 76
+    },
+    "zds_module_ranges": 128
+  }
+}

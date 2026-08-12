@@ -41,6 +41,7 @@ C_SOURCES := \
 	src_umm_malloc/umm_malloc.c
 
 C_OBJECTS := $(addprefix obj/,$(C_SOURCES:.c=.o))
+C_ASSEMBLY := $(addprefix inspect/c/,$(C_SOURCES:.c=.s))
 C_HEADERS := $(shell find $(UPSTREAM) include -type f -name '*.h' -print | sort)
 
 ASM_SOURCES := \
@@ -75,11 +76,13 @@ FIRMWARE_HEX := bin/MOS.hex
 
 .DEFAULT_GOAL := firmware
 
-.PHONY: provenance-check c-objects c-compat asm-sources asm-objects all-objects runtime firmware verify-firmware clean report
+.PHONY: provenance-check c-objects c-assembly c-compat asm-sources asm-objects all-objects runtime firmware verify-firmware clean report
 provenance-check:
 	$(PYTHON) -B $(ZDS2GAS) provenance $(UPSTREAM)
 
 c-objects: provenance-check $(C_OBJECTS)
+
+c-assembly: provenance-check $(C_ASSEMBLY)
 
 c-compat: c-objects
 	$(PYTHON) -B verify_c_compat.py --toolchain $(TOOLCHAIN) \
@@ -103,13 +106,18 @@ obj/%.o: $(UPSTREAM)/%.c $(C_HEADERS)
 	@mkdir -p $(dir $@)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
+inspect/c/%.s: $(UPSTREAM)/%.c $(C_HEADERS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -S $< -o $@
+
 # AgonDev 1.0 exhausts registers in FatFS ff.c at its default -Oz level.
 # -Os is a verified compiler workaround and supersedes the earlier option.
 obj/src_fatfs/ff.o: CFLAGS += -Os
+inspect/c/src_fatfs/ff.s: CFLAGS += -Os
 
 # Validation must finish before any prepared-source object recipe can run,
 # including under a direct parallel sub-make.
-$(C_OBJECTS) $(ASM_OBJECTS) $(GENERATED)/manifest.json: | provenance-check
+$(C_OBJECTS) $(C_ASSEMBLY) $(ASM_OBJECTS) $(GENERATED)/manifest.json: | provenance-check
 
 $(GENERATED)/manifest.json: $(ZDS2GAS) $(PREPARATION_METADATA) $(ASM_INPUTS)
 	$(PYTHON) -B $(ZDS2GAS) tree $(UPSTREAM) $(GENERATED)
@@ -146,5 +154,5 @@ report: c-objects
 	$(SIZE) -A $(C_OBJECTS)
 
 clean:
-	$(RM) -r obj $(GENERATED) bin
+	$(RM) -r obj $(GENERATED) inspect bin
 	$(MAKE) -C runtime clean

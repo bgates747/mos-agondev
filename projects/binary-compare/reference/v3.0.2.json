@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "repository": "https://github.com/AgonPlatform/agon-mos",
+  "release": {
+    "name": "v3.0.2",
+    "tag": "v3.0.2",
+    "commit": "8336409351ee5314e02801a7b72a4f1bb5282519",
+    "published_at": "2026-03-01T19:57:36Z",
+    "url": "https://github.com/AgonPlatform/agon-mos/releases/tag/v3.0.2",
+    "variant": "universal Platform MOS"
+  },
+  "build": {
+    "map_date": "Sun Mar 01 19:18:17 2026",
+    "zds": "ZDS II - eZ80Acclaim! 5.3.5 (Build 23020901)",
+    "linker": "IEEE 695 OMF Linker Version 6.25 (19073001)",
+    "processor": "assembler",
+    "options": "parsed from the pinned MOS.map COMMAND LIST into each report"
+  },
+  "assets": {
+    "MOS.bin": {
+      "size": 108490,
+      "sha256": "d564243283972690933a4554296ad6202ca4ef54572279533a942960846bebae",
+      "url": "https://github.com/AgonPlatform/agon-mos/releases/download/v3.0.2/MOS.bin"
+    },
+    "MOS.hex": {
+      "size": 238670,
+      "sha256": "821ffd6595ca3293a72c4cd5c4c0025bc41ebae84a6eb293a13d0dbf0d6912c4",
+      "url": "https://github.com/AgonPlatform/agon-mos/releases/download/v3.0.2/MOS.hex"
+    },
+    "MOS.map": {
+      "size": 167185,
+      "sha256": "d69e60bbce61a7b4b3eef318ba395f11c4e1a5b585755755113992dc94edcb86",
+      "url": "https://github.com/AgonPlatform/agon-mos/releases/download/v3.0.2/MOS.map"
+    }
+  }
+}

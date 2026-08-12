@@ -14,6 +14,8 @@ the original feasibility narrative.
 - `projects/mos-port/ld/README.md` documents the firmware linker contract.
 - `projects/mos-port/runtime/README.md` documents the restricted runtime.
 - `projects/mos-port/PARITY.md` defines the bounded behavioral comparison.
+- `projects/binary-compare/README.md` defines the automated official-release
+  binary/map/disassembly comparison and its fail-closed evidence labels.
 - `projects/contract-probe/README.md` and
   `projects/contract-probe/WRAPPER_AUDIT.md` define the current target ABI
   evidence and its limits.

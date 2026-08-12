@@ -1,0 +1,15 @@
+IEEE 695 OMF Linker Version 6.25 (19073001)
+DATE: Sun Mar 01 19:18:17 2026
+PROCESSOR: assembler
+ZDS II - eZ80Acclaim! 5.3.5 (Build 23020901)
+Module: Y:\src\sample.asm (File: sample.obj) Version: 1:0 03/01/2026 19:18:02
+    Segment: CODE                              C:000100    C:00010F       10h
+    Segment: BSS                               D:0BC100    D:0BC103        4h
+    Segment: TEXT                              C:000500    C:000503        4h
+EXTERNAL DEFINITIONS:
+=====================
+Symbol                               Address Module          Segment
+_sample                             C:000100 sample          CODE
+__len_bss                           00000004 (User Defined)
+SYMBOL CROSS REFERENCE:
+=======================

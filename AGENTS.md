@@ -15,6 +15,9 @@ complete candidate now builds and boots: all C and active assembly inputs link
 with a restricted runtime into a verified 102,059-byte image, and headless Fab
 tests reach the shell with directory-backed hostfs. It is still a candidate,
 not a replacement release, until broader parity and hardware qualification.
+The official-release binary comparison is reproducible through
+`make binary-reference` and `make binary-compare`; do not record new evidence
+until its generated report and bounded queue have been reviewed.
 
 `TODO.md` is the only authoritative task list. Current setup is in
 `STARTHERE.md`; current technical documents are indexed by `docs/README.md`;

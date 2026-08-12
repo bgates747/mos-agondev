@@ -18,6 +18,14 @@ VDP and has passed bounded shell, hostfs, VDP-protocol, formatter, and MOS API
 checks. Broader parity and physical-hardware qualification remain before it can
 replace the reference ZDS release build.
 
+Comparison with the official v3.0.2 image found that, apart from
+relocation-dependent bytes and a post-release VDP bug fix, the maintained
+handwritten assembly is effectively byte-for-byte identical. Most remaining
+image differences arise from the Zilog and AgonDev/Clang C compilers producing
+different code, together with their different runtime libraries and final
+layout. The comparison inventories and bounds those differences; it does not
+by itself prove semantic equivalence of the C-generated code.
+
 Start with [`STARTHERE.md`](STARTHERE.md). It covers fresh-clone setup, the
 normal edit/build cycle, optional project-local Fab setup, generated-file
 boundaries, and verification levels.
@@ -85,6 +93,8 @@ make firmware-boot-check
 make firmware-parity-check
 make vdp-regression-check
 make contract-check
+make binary-reference
+make binary-compare
 make verify
 ```
 
@@ -108,6 +118,9 @@ still apply.
   pinned technical précis, and dated development logs.
 - [`evidence/README.md`](evidence/README.md) — frozen machine-readable study
   evidence.
+- [`projects/binary-compare/README.md`](projects/binary-compare/README.md) —
+  automated comparison with the official ZDS-built release and its bounded
+  review process.
 
 ## Emulator qualification
 

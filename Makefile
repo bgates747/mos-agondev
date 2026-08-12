@@ -13,7 +13,7 @@ FAB_ROOT_ABS := $(abspath $(FAB_ROOT))
 	check-environment toolchain-probe c-probe probe-output-check emulator-check \
 	c-compat-check asm-probe linker-check runtime-check firmware-check firmware-boot-check \
 	firmware-parity-check vdp-regression-check vdp-baseline-check contract-check run-custom-emulator \
-	verify baseline-check clean
+	binary-reference binary-compare binary-compare-record verify baseline-check clean
 
 .NOTPARALLEL: verify baseline-check firmware-check
 
@@ -34,6 +34,9 @@ help:
 	@echo "vdp-regression-check execute linked VDP handshake/oversize regressions"
 	@echo "vdp-baseline-check add the pinned ZDS VDP negative control"
 	@echo "contract-check     run target formatter and MOS API ABI probes"
+	@echo "binary-reference   fetch and hash-check the official release artifacts"
+	@echo "binary-compare     automate ZDS-release/AgonDev image comparison"
+	@echo "binary-compare-record replace reviewed evidence after inspecting comparison"
 	@echo "run-custom-emulator launch the AgonDev-built MOS with stock Platform VDP"
 	@echo "audit             print the frozen research source audit as JSON"
 	@echo "verify            run portable checks for the configured inputs"
@@ -113,6 +116,17 @@ contract-check: firmware-check emulator-check
 		FAB_ROOT="$(FAB_ROOT_ABS)" clean
 	$(MAKE) -C projects/contract-probe AGONDEV_TOOLCHAIN=$(TOOLCHAIN) \
 		FAB_ROOT="$(FAB_ROOT_ABS)" verify
+
+binary-reference:
+	$(MAKE) -C projects/binary-compare reference
+
+binary-compare: firmware-check
+	$(MAKE) -C projects/binary-compare TOOLCHAIN=$(TOOLCHAIN) \
+		MOS_SOURCE=$(abspath upstream/agon-mos) check
+
+binary-compare-record: firmware-check
+	$(MAKE) -C projects/binary-compare TOOLCHAIN=$(TOOLCHAIN) \
+		MOS_SOURCE=$(abspath upstream/agon-mos) record
 
 run-custom-emulator: firmware-check emulator-check
 	@cd emulator && exec ./fab-agon-emulator \

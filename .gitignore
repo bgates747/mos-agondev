@@ -19,5 +19,7 @@ __pycache__/
 projects/*/bin/
 projects/*/obj/
 projects/*/generated/
+projects/binary-compare/artifacts/
+projects/mos-port/inspect/
 projects/mos-port/worktree/
 projects/mos-port/worktree.backup/

@@ -1,0 +1,2 @@
+ .text          0x00000200       0x14 obj/asm/src/sample.o
+ .bss           0x000bc200        0x4 obj/asm/src/sample.o
