@@ -11,6 +11,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
 
+import setup_emulator
+
 
 PROJECT_ROOT = Path(__file__).absolute().parent.parent
 DEFAULT_PROFILE = PROJECT_ROOT / "emulator"
@@ -135,11 +137,24 @@ def verify_profile(profile: Path, fab_root: Path) -> VerificationResult:
         if not path.exists():
             errors.append(f"Missing {label}: {path}")
 
+    launcher = profile / "fab-agon-emulator"
+    if launcher.is_symlink() or not launcher.is_file():
+        errors.append(f"Expected real generated Fab launcher: {launcher}")
+    else:
+        try:
+            launcher_text = launcher.read_text(encoding="utf-8")
+        except (OSError, UnicodeError) as error:
+            errors.append(f"Could not read generated Fab launcher: {launcher} ({error})")
+        else:
+            if launcher_text != setup_emulator.generated_launcher_text():
+                errors.append(f"Generated Fab launcher content drifted: {launcher}")
+            if not os.access(launcher, os.X_OK):
+                errors.append(f"Generated Fab launcher is not executable: {launcher}")
     _expect_symlink(
-        profile / "fab-agon-emulator",
+        profile / "fab-agon-emulator.bin",
         expected_executable,
         errors,
-        "Fab executable",
+        "raw Fab executable",
     )
     _expect_symlink(profile / "firmware", firmware, errors, "stock firmware")
 

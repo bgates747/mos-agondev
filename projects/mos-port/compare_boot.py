@@ -67,8 +67,6 @@ REQUIRED_TRANSCRIPT_TOKENS = (
     "Could not find file",
     "Invalid command",
 )
-
-
 class ParityError(RuntimeError):
     """The candidate and reference produced different stable shell output."""
 
@@ -163,9 +161,47 @@ def normalize(output: bytes) -> list[str]:
     return lines
 
 
-def compare(candidate: bytes, reference: bytes) -> None:
+def canonicalize_help_commands(
+    lines: list[str], *, expected_additions: tuple[str, ...] = ()
+) -> list[str]:
+    """Canonicalize the wrapped HELP inventory and remove reviewed additions."""
+
+    try:
+        marker = lines.index("List of commands:")
+    except ValueError as error:
+        raise ParityError("HELP command inventory marker is absent") from error
+    end = marker + 1
+    while end < len(lines) and not lines[end].startswith("/ *"):
+        end += 1
+    if end == marker + 1 or end == len(lines):
+        raise ParityError("HELP command inventory is incomplete")
+    joined = " ".join(lines[marker + 1 : end])
+    commands = [item.strip().rstrip(".") for item in joined.split(",")]
+    if not commands or any(not item for item in commands):
+        raise ParityError("HELP command inventory is malformed")
+    for expected in expected_additions:
+        if commands.count(expected) != 1:
+            raise ParityError(
+                f"candidate HELP inventory does not contain exactly one {expected}"
+            )
+        commands.remove(expected)
+    return lines[: marker + 1] + [", ".join(commands)] + lines[end:]
+
+
+def compare(
+    candidate: bytes,
+    reference: bytes,
+    *,
+    expected_command_additions: tuple[str, ...] = (),
+) -> None:
     candidate_lines = normalize(candidate)
     reference_lines = normalize(reference)
+    help_marker = "List of commands:"
+    if help_marker in candidate_lines or help_marker in reference_lines:
+        candidate_lines = canonicalize_help_commands(
+            candidate_lines, expected_additions=expected_command_additions
+        )
+        reference_lines = canonicalize_help_commands(reference_lines)
     if candidate_lines != reference_lines:
         diff = "\n".join(
             difflib.unified_diff(
@@ -205,6 +241,12 @@ def main() -> int:
     parser.add_argument("--candidate", type=Path, default=project / "projects/mos-port/bin/MOS.bin")
     parser.add_argument("--reference", type=Path, default=project / "emulator/firmware/mos_platform.bin")
     parser.add_argument("--timeout", type=float, default=45.0)
+    parser.add_argument(
+        "--expected-command",
+        action="append",
+        default=[],
+        help="reviewed candidate-only HELP command; may be repeated",
+    )
     args = parser.parse_args()
     try:
         cli = verify_boot.find_cli(args.fab_root.expanduser().resolve())
@@ -216,7 +258,11 @@ def main() -> int:
             validate_fixture(sdcard)
             reference = run(cli, args.reference.resolve(), sdcard, args.timeout)
             validate_fixture(sdcard)
-            compare(candidate, reference)
+            compare(
+                candidate,
+                reference,
+                expected_command_additions=tuple(args.expected_command),
+            )
     except (OSError, ParityError, verify_boot.BootError) as error:
         print(f"compare_boot.py: {error}", file=subprocess.sys.stderr)
         return 1

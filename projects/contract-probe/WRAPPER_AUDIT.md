@@ -24,8 +24,8 @@ and the low 24 bits of the long start at SP+6.
    then overwrites HL with `(ix+6)` without creating an IX frame. The loaded
    address depends on the caller's unrelated IX value. The local correction
    keeps the already-correct HL value and removes the IX read. It is statically
-   verified but not invoked because the contract hostfs is intentionally
-   read-only.
+   verified but not invoked because changing a volume label is outside the
+   disposable directory-hostfs contract.
 3. `mos_flseek_p.src` extracts the one-byte handle correctly, then computes
    SP+9 as the address of the following `uint32_t`. SP+9 addresses the upper
    three-byte word; the value's low word begins at SP+6. The local correction
@@ -44,8 +44,8 @@ The current MOSlet calls `mos_pmatch`, `mos_getleafname`, `mos_getargument`,
 `mos_extractstring`, `mos_escapestring`, `mos_getError`, `mos_getabsolutepath`,
 `mos_getdirforpath`, `mos_resolvepath`, `mos_isdirectory`, `mos_getrtc`,
 `mos_gsinit`, `mos_gsread`, `mos_gstrans`, `mos_substituteargs`, the
-simple-handle file API, read-only directory/stat/path/label helpers, the
-selected `ffs_*` file API, and `getsysvar_time`. Their assembly wrappers
+simple-handle file API, directory/stat/path/label helpers, selected write-side
+and read-side `ffs_*` calls, and `getsysvar_time`. Their assembly wrappers
 respectively use aligned frame slots, single-argument stack exchange, corrected
 local wrappers, delegated C-ABI tail calls, or no arguments. The audit prints
 and pins this coverage set.

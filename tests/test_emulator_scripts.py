@@ -27,6 +27,9 @@ class EmulatorScriptTests(unittest.TestCase):
         self.profile = self.temp / "profile"
         self.fake_log = self.temp / "emulator.log"
         self._create_fake_fab()
+        candidate = self.temp / "projects/mos-port/bin/MOS.bin"
+        candidate.parent.mkdir(parents=True)
+        candidate.write_bytes(b"candidate-mos")
 
     def _create_fake_fab(self) -> None:
         executable = self.fab_root / "fab-agon-emulator"
@@ -70,9 +73,12 @@ class EmulatorScriptTests(unittest.TestCase):
         profile = setup_emulator.setup_profile(self.profile, self.fab_root)
 
         self.assertEqual(profile, self.profile)
-        self.assertTrue((profile / "fab-agon-emulator").is_symlink())
+        self.assertTrue((profile / "fab-agon-emulator").is_file())
+        self.assertFalse((profile / "fab-agon-emulator").is_symlink())
+        self.assertTrue(os.access(profile / "fab-agon-emulator", os.X_OK))
+        self.assertTrue((profile / "fab-agon-emulator.bin").is_symlink())
         self.assertEqual(
-            (profile / "fab-agon-emulator").resolve(),
+            (profile / "fab-agon-emulator.bin").resolve(),
             (self.fab_root / "fab-agon-emulator").resolve(),
         )
         self.assertTrue((profile / "firmware").is_symlink())
@@ -100,7 +106,7 @@ class EmulatorScriptTests(unittest.TestCase):
 
     def test_refresh_repairs_links_and_preserves_real_local_files(self) -> None:
         setup_emulator.setup_profile(self.profile, self.fab_root)
-        executable_link = self.profile / "fab-agon-emulator"
+        executable_link = self.profile / "fab-agon-emulator.bin"
         executable_link.unlink()
         executable_link.symlink_to(self.temp / "wrong-emulator")
 
@@ -147,6 +153,38 @@ class EmulatorScriptTests(unittest.TestCase):
         self.assertEqual(managed_path.read_bytes(), b"local executable")
         self.assertFalse((self.profile / "firmware").exists())
         self.assertFalse((self.profile / "sdcard").exists())
+
+    def test_profile_local_launcher_is_the_complete_direct_entry(self) -> None:
+        setup_emulator.setup_profile(self.profile, self.fab_root)
+        environment = os.environ.copy()
+        environment["FAKE_EMULATOR_LOG"] = str(self.fake_log)
+        completed = subprocess.run(
+            [str(self.profile / "fab-agon-emulator")],
+            cwd=self.profile,
+            env=environment,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        log = self.fake_log.read_text(encoding="utf-8").splitlines()
+        self.assertEqual(log[0], f"cwd={self.profile}")
+        self.assertEqual(log[1], "video=wayland")
+        self.assertEqual(
+            log[2:],
+            [
+                "arg=--renderer",
+                "arg=sw",
+                "arg=--firmware",
+                "arg=platform",
+                "arg=--mos",
+                f"arg={self.temp / 'projects/mos-port/bin/MOS.bin'}",
+                "arg=--sdcard",
+                f"arg={self.profile / 'sdcard'}",
+                "arg=--verbose",
+                "arg=-z",
+            ],
+        )
 
     def test_missing_upstream_input_fails_before_profile_creation(self) -> None:
         (self.fab_root / "firmware/vdp_platform.so").unlink()
@@ -221,8 +259,10 @@ class EmulatorScriptTests(unittest.TestCase):
                 "arg=sw",
                 "arg=--firmware",
                 "arg=platform",
+                "arg=--mos",
+                f"arg={self.temp / 'projects/mos-port/bin/MOS.bin'}",
                 "arg=--sdcard",
-                "arg=./sdcard",
+                f"arg={self.profile / 'sdcard'}",
                 "arg=--verbose",
                 "arg=-z",
                 "arg=--fullscreen",

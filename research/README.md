@@ -32,11 +32,8 @@ normal `make verify` development gate:
 - the exact stock ZDS MOS/map pair must reproduce the historical oversized-VDP
   stale-length defect as the study's intentional negative control.
 
-The recorded MOS commit
-`5f67b1ca77eb7a77d3b37cc7b029db51f0d1548e` adds the oversized VDP-packet
-discard fix and its regression test on top of public upstream commit
-`8336409351ee5314e02801a7b72a4f1bb5282519`. At the time of this documentation
-pass, the recorded commit was not reachable from any branch on the public
-`AgonPlatform/agon-mos` remote. `PORT-205` tracks making every frozen input
-publicly obtainable or revising the baseline transparently. Do not substitute
-the parent commit while claiming exact reproduction.
+The current generic baseline uses the clean `agon-mos` oversized-packet
+correction recorded in `evidence/baseline.json`, directly on public official
+v3.0.2 commit `8336409351ee5314e02801a7b72a4f1bb5282519`. The older
+`5f67b1ca...` study identity remains in dated research as historical provenance;
+it is not the current reproducibility authority.

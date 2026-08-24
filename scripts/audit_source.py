@@ -36,7 +36,15 @@ def git_identity(repository: Path) -> dict[str, Any]:
         "describe": run(
             "git", "-C", repository, "describe", "--always", "--dirty", "--tags"
         ),
-        "dirty": bool(run("git", "-C", repository, "status", "--porcelain")),
+        # Submodule worktrees and untracked build products are not part of the
+        # pinned superproject identity. Only tracked superproject bytes make a
+        # public-input baseline non-reproducible.
+        "dirty": bool(
+            run(
+                "git", "-C", repository, "status", "--porcelain",
+                "--untracked-files=no", "--ignore-submodules=all",
+            )
+        ),
     }
 
 
@@ -124,7 +132,7 @@ def build_audit(mos: Path, agondev: Path, fab: Path, docs: Path) -> dict[str, An
     platform_map = firmware / "mos_platform.map"
     toolbin = agondev / "release/bin"
     return {
-        "schema": 1,
+        "schema": 2,
         "repositories": {
             "agon_mos": git_identity(mos),
             "agondev": git_identity(agondev),
@@ -147,7 +155,6 @@ def build_audit(mos: Path, agondev: Path, fab: Path, docs: Path) -> dict[str, An
             "space_allocation": parse_zds_space_allocation(
                 platform_map.read_text(encoding="utf-8", errors="replace")
             ),
-            "fab_executable": file_identity(fab_executable(fab)),
             "mos": file_identity(firmware / "mos_platform.bin"),
             "map": file_identity(platform_map),
             "vdp": file_identity(firmware / "vdp_platform.so"),

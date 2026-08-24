@@ -84,13 +84,12 @@ For dependencies elsewhere, supply both locations explicitly:
 relative `toolchains/agondev` and `upstream/agon-mos` links. It does not modify
 either input and refuses to replace an unexpected existing path.
 
-The exact MOS commit used by the original study is recorded under `research/`
-and `evidence/`. It is not presently reachable from the public upstream remote.
-It contains the oversized VDP-packet discard fix required by the current VDP
-regression gate; a later source commit containing an equivalent fix is also a
-valid current-development input, but the public parent commit is not. Until
-`PORT-205` is resolved, a public upstream clone alone cannot reproduce every
-gate. See `research/README.md` before attempting an exact baseline reproduction.
+The generic public baseline and its official v3.0.2 parent are recorded under
+`evidence/` and documented in `docs/port-200-qualification.md`. Product source
+repositories such as `agon-emos` own their own revision pins, additional source
+files, behavioral expectations, and release evidence. This repository accepts
+those inputs through the same maintained-source boundary rather than embedding
+their product history.
 
 ## 3. Optionally install Fab Agon Emulator
 
@@ -99,12 +98,12 @@ Fab is not needed for translation, compilation, linking, or
 checks, graphical testing, and complete `make verify`.
 
 The recommended location is the ignored `fab-agon-emulator/` directory in this
-repository. To build the pinned 1.2.2 release from source, first install Fab's
+repository. To build the pinned 1.2.3 release from source, first install Fab's
 documented prerequisites: Git, Make, Rust/Cargo, a C++ toolchain, and SDL3 plus
 its development headers. Then run:
 
 ```bash
-git clone --recurse-submodules --branch 1.2.2 --single-branch \
+git clone --recurse-submodules --branch 1.2.3 --single-branch \
   https://github.com/tomm/fab-agon-emulator.git \
   fab-agon-emulator
 make -C fab-agon-emulator
@@ -131,9 +130,11 @@ Create the separate ignored runtime profile only after those inputs exist:
 ```
 
 `fab-agon-emulator/` is the source checkout or distribution. `emulator/` is a
-generated writable profile that links to its stock assets; they are not the
-same directory. `setup_emulator.py` validates and profiles Fab but does not
-download or build it.
+generated writable profile with a mandatory direct launcher
+`fab-agon-emulator` and a separate raw `fab-agon-emulator.bin` link; they are
+not the same directory. The launcher supplies the local SDL3 path and selects
+this project's candidate MOS. `setup_emulator.py` validates and profiles Fab
+but does not download or build it.
 
 For a complete Fab installation elsewhere, export one consistent override for
 the shell session before setup or any later emulator-related Make target:
@@ -142,7 +143,8 @@ the shell session before setup or any later emulator-related Make target:
 export FAB_ROOT=PATH_TO_FAB
 make setup-emulator
 make verify
-make run-custom-emulator
+cd emulator
+./fab-agon-emulator
 ```
 
 Alternatively prefix each command with `FAB_ROOT=PATH_TO_FAB`. The generated
@@ -228,12 +230,13 @@ It still enforces the pinned AgonDev ABI/runtime contract and every current
 firmware regression; portability is not permission to substitute an unaudited
 toolchain or remove a required source fix.
 
-`make baseline-check` additionally compares source identities, stock artifacts,
-and measured probe outputs with `evidence/baseline.json`. Those exact Fab binary
-hashes preserve the original research environment and can vary after a valid
-rebuild because compiler output embeds local paths. Do not update the evidence
-file merely to silence a mismatch; follow `research/README.md` and review every
-pin or measurement change deliberately.
+`make baseline-check` additionally compares public source identities, toolchain
+identity, source measurements, and stock firmware artifacts with
+`evidence/baseline.json`. Schema 2 intentionally excludes a locally compiled
+Fab executable because path/compiler differences need not change its public
+source identity; the configured emulator profile still records and verifies
+the exact executable it uses. Do not update the evidence file merely to silence
+a mismatch; review every pin or measurement change deliberately.
 
 ## 8. About an AgonDev-native maintained fork
 

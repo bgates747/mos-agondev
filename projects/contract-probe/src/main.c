@@ -11,6 +11,7 @@
 static unsigned int failures;
 static char debug[128];
 static FIL sparse_file;
+static const char persistent_payload[] = "PORT-201-PERSIST\r\n";
 
 static void emit(const char *text) {
     while (*text != '\0') {
@@ -294,6 +295,105 @@ static void check_fatfs_api(void) {
     }
 }
 
+static void check_write_api(void) {
+    FIL file = {0};
+    FILINFO info = {0};
+    char buffer[sizeof(persistent_payload)] = {0};
+    char mos_buffer[8] = {0};
+    uint8_t handle = mos_fopen("/mos-write.tmp", FA_CREATE_ALWAYS | FA_WRITE);
+    uint8_t status;
+    char save_source[] = "SAVE-BYTES";
+    char save_result[sizeof(save_source)] = {0};
+
+    check(handle != 0, "api-mos-fopen-write");
+    if (handle != 0) {
+        check(mos_fwrite(handle, "MOS", 3) == 3,
+              "api-mos-fwrite-u24-return");
+        mos_fputc(handle, '!');
+        mos_fclose(handle);
+    }
+    handle = mos_fopen("/mos-write.tmp", FA_READ);
+    check(handle != 0, "api-mos-reopen-write-result");
+    if (handle != 0) {
+        check(mos_fread(handle, mos_buffer, sizeof(mos_buffer)) == 4 &&
+                  memcmp(mos_buffer, "MOS!", 4) == 0,
+              "api-mos-write-readback");
+        mos_fclose(handle);
+    }
+    check(ffs_unlink("/mos-write.tmp") == FR_OK, "api-mos-write-cleanup");
+
+    check(mos_save("/mos-save.bin", save_source, sizeof(save_source)) == FR_OK,
+          "api-mos-save");
+    check(mos_load("/mos-save.bin", save_result, sizeof(save_result)) == FR_OK &&
+              memcmp(save_result, save_source, sizeof(save_source)) == 0,
+          "api-mos-load");
+    check(mos_copy("/mos-save.bin", "/mos-copy.bin") == FR_OK,
+          "api-mos-copy");
+    check(mos_ren("/mos-copy.bin", "/mos-renamed.bin") == FR_OK,
+          "api-mos-ren");
+    check(mos_del("/mos-save.bin") == FR_OK, "api-mos-del-source");
+    check(mos_del("/mos-renamed.bin") == FR_OK, "api-mos-del-renamed");
+
+    memset(&file, 0, sizeof(file));
+    status = ffs_fopen(&file, "/ffs-put.tmp", FA_CREATE_ALWAYS | FA_WRITE);
+    check(status == FR_OK, "api-ffs-open-put");
+    if (status == FR_OK) {
+        /* Fab traps f_putc below MOS and leaves BC unchanged, so only the
+         * resulting byte is portable candidate/reference evidence here. */
+        (void)ffs_fputc(&file, 'A');
+        check(ffs_fputs(&file, "BC") == 2, "api-ffs-fputs");
+        check(ffs_fclose(&file) == FR_OK, "api-ffs-close-put");
+    }
+    memset(&file, 0, sizeof(file));
+    memset(buffer, 0, sizeof(buffer));
+    status = ffs_fopen(&file, "/ffs-put.tmp", FA_READ);
+    check(status == FR_OK && ffs_fread(&file, buffer, sizeof(buffer)) == 3 &&
+              memcmp(buffer, "ABC", 3) == 0,
+          "api-ffs-put-readback");
+    if (status == FR_OK) {
+        check(ffs_fclose(&file) == FR_OK, "api-ffs-close-put-readback");
+    }
+    check(ffs_unlink("/ffs-put.tmp") == FR_OK, "api-ffs-put-cleanup");
+
+    status = ffs_stat(&info, "/abi-write-dir/persisted.bin");
+
+    if (status == FR_NO_FILE || status == FR_NO_PATH) {
+        check(ffs_mkdir("/abi-write-dir") == FR_OK, "api-ffs-mkdir");
+        check(ffs_chdir("/abi-write-dir") == FR_OK, "api-ffs-chdir-created");
+        status = ffs_fopen(&file, "stage.tmp", FA_CREATE_ALWAYS | FA_WRITE);
+        check(status == FR_OK, "api-ffs-open-write");
+        if (status == FR_OK) {
+            check(ffs_fwrite(&file, persistent_payload,
+                             sizeof(persistent_payload) - 1) ==
+                      sizeof(persistent_payload) - 1,
+                  "api-ffs-fwrite-u24-return");
+            check(ffs_fclose(&file) == FR_OK, "api-ffs-close-write");
+        }
+        check(ffs_rename("stage.tmp", "persisted.bin") == FR_OK,
+              "api-ffs-rename");
+        check(ffs_chdir("/") == FR_OK, "api-ffs-chdir-root");
+        emit("WRITE-PHASE-CREATE\r\n");
+    } else {
+        check(status == FR_OK && info.fsize == sizeof(persistent_payload) - 1,
+              "api-ffs-persisted-stat");
+        status = ffs_fopen(&file, "/abi-write-dir/persisted.bin", FA_READ);
+        check(status == FR_OK, "api-ffs-open-persisted");
+        if (status == FR_OK) {
+            check(ffs_fread(&file, buffer, sizeof(persistent_payload) - 1) ==
+                          sizeof(persistent_payload) - 1 &&
+                      memcmp(buffer, persistent_payload,
+                             sizeof(persistent_payload) - 1) == 0,
+                  "api-ffs-cold-boot-persistence");
+            check(ffs_fclose(&file) == FR_OK, "api-ffs-close-persisted");
+        }
+        check(ffs_unlink("/abi-write-dir/persisted.bin") == FR_OK,
+              "api-ffs-unlink-persisted");
+        check(ffs_unlink("/abi-write-dir") == FR_OK,
+              "api-ffs-unlink-directory");
+        emit("WRITE-PHASE-VERIFY\r\n");
+    }
+}
+
 static void check_mos_api(void) {
     char arguments[] = "zero one two";
     char *argument = NULL;
@@ -440,6 +540,7 @@ int main(void) {
     check_directory_api();
     check_read_api();
     check_fatfs_api();
+    check_write_api();
     if (failures == 0) {
         emit("CONTRACT-PASS\r\n");
         return 0;

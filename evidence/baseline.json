@@ -12,8 +12,8 @@
       "dirty": false
     },
     "agon_mos": {
-      "commit": "5f67b1ca77eb7a77d3b37cc7b029db51f0d1548e",
-      "describe": "v3.0.2-1-g5f67b1c",
+      "commit": "a4fae76d280a98819862bcfa5c3165855c72400c",
+      "describe": "v3.0.2-1-ga4fae76",
       "dirty": false
     },
     "agondev": {
@@ -22,12 +22,12 @@
       "dirty": false
     },
     "fab_agon_emulator": {
-      "commit": "98bbb392b75b196171cc620b60839220e5ce53ed",
-      "describe": "1.2.2",
+      "commit": "fbb7d7ca887a06966ca8a62ed22272409a5ab640",
+      "describe": "1.2.3",
       "dirty": false
     }
   },
-  "schema": 1,
+  "schema": 2,
   "source": {
     "assembly_and_include_files": 20,
     "assembly_and_include_lines": 6680,
@@ -47,10 +47,6 @@
     }
   },
   "stock_platform": {
-    "fab_executable": {
-      "bytes": 1895504,
-      "sha256": "a67e9fa52cdc55816e1c3d4224defa2c8b140c7ee4f48178695b54f6743fe5dc"
-    },
     "map": {
       "bytes": 167185,
       "sha256": "d69e60bbce61a7b4b3eef318ba395f11c4e1a5b585755755113992dc94edcb86"

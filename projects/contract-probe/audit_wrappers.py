@@ -12,6 +12,11 @@ from pathlib import Path
 
 
 CONTRACT_WRAPPERS = {
+    "mos_load.src": "aligned frame slots",
+    "mos_save.src": "aligned frame slots",
+    "mos_del.src": "single stack-exchange argument",
+    "mos_ren.src": "aligned frame slots",
+    "mos_copy.src": "aligned frame slots",
     "mos_pmatch.src": "aligned frame slots",
     "mos_getleafname.src": "single stack-exchange argument",
     "mos_getargument.src": "aligned frame slots",
@@ -31,6 +36,8 @@ CONTRACT_WRAPPERS = {
     "mos_resolvepath.src": "delegated C-ABI tail call",
     "mos_fopen.src": "aligned frame slots",
     "mos_fread.src": "aligned frame slots",
+    "mos_fwrite.src": "aligned frame slots",
+    "mos_fputc.src": "aligned frame slots",
     "mos_getfil.src": "single stack-exchange argument",
     "mos_feof.src": "single stack-exchange argument",
     "mos_flseek_p.src": "defect: uint32 pointer uses upper slot",
@@ -42,6 +49,9 @@ CONTRACT_WRAPPERS = {
     "ffs_ftell.src": "aligned frame slots",
     "ffs_fread.src": "aligned frame slots",
     "ffs_fgets.src": "aligned frame slots",
+    "ffs_fwrite.src": "aligned frame slots",
+    "ffs_fputc.src": "aligned frame slots",
+    "ffs_fputs.src": "aligned frame slots",
     "ffs_ferror.src": "single stack-exchange argument",
     "ffs_flseek_p.src": "aligned frame slots",
     "ffs_feof.src": "single stack-exchange argument",
@@ -52,6 +62,10 @@ CONTRACT_WRAPPERS = {
     "ffs_dfindfirst.src": "aligned frame slots with temporary IX",
     "ffs_dfindnext.src": "aligned frame slots",
     "ffs_stat.src": "aligned frame slots",
+    "ffs_unlink.src": "single stack-exchange argument",
+    "ffs_rename.src": "aligned frame slots",
+    "ffs_mkdir.src": "single stack-exchange argument",
+    "ffs_chdir.src": "single stack-exchange argument",
     "ffs_getcwd.src": "aligned frame slots",
     "ffs_getlabel.src": "aligned frame slots",
 }

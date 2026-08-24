@@ -7,8 +7,9 @@ project's only actionable work list remains `TODO.md`.
 The findings below were reproduced against:
 
 - AgonDev commit `b67ab2444a63267a42193f204889d466765d8dd2`;
-- Fab Agon Emulator commit `98bbb392b75b196171cc620b60839220e5ce53ed`;
-- `agon-mos` commit `5f67b1ca77eb7a77d3b37cc7b029db51f0d1548e`.
+- Fab Agon Emulator commit `fbb7d7ca887a06966ca8a62ed22272409a5ab640`;
+- maintained generic `agon-mos` source containing the reviewed oversized-packet
+  correction on top of official v3.0.2.
 
 No upstream checkout was modified. The executable audit, target MOSlet, local
 workarounds, and fuller coverage boundary are under `projects/contract-probe/`.
@@ -30,8 +31,10 @@ make -C projects/contract-probe audit
 make contract-check
 ```
 
-The second command runs a read-only AgonDev MOSlet against both the AgonDev-built
-MOS and the pinned ZDS MOS. The complete repository gate is `make verify`.
+The second command runs an isolated AgonDev MOSlet against both the
+AgonDev-built MOS and pinned ZDS MOS. Read assertions use fixed inputs; write
+assertions perform a two-cold-boot transaction in a disposable hostfs and prove
+exact cleanup. The complete repository gate is `make verify`.
 
 ### AGONDEV-LIBMOS-001 — `mos_getError` uses packed offsets
 
@@ -82,8 +85,9 @@ have. The safe fix is simply to remove the redundant IX load and issue the RST
 with the existing HL value.
 
 `src/ffs_setlabel_fixed.asm` is assembled and disassembled by the audit. It is
-deliberately not executed because the target contract uses an immutable hostfs
-fixture and does not perform write-side filesystem operations.
+deliberately not executed because mutating a volume label is outside the
+directory-hostfs contract; ordinary file and directory writes are executed in
+a disposable fixture.
 
 ### AGONDEV-LIBMOS-003 — `mos_flseek_p` points at the upper long word
 
@@ -149,9 +153,11 @@ a small file for size/EOF evidence until Fab is corrected.
 
 ## Status
 
-All four findings are reproducible and remain unmodified upstream. `PORT-204`
-tracks coordination, toolchain/emulator pin updates, removal of local shims,
-and rerunning the contract after upstream fixes are available.
+All four findings remain reproducible on the current public pins. PORT-204
+therefore retains the three minimal local wrappers and Fab's bounded large-file
+workaround. Any future pin change must reproduce each failing shape, prove the
+upstream correction, remove only the corresponding shim, and rerun the complete
+contract; source inspection alone is insufficient.
 
 For an upstream report, link or attach this file together with
 `projects/contract-probe/WRAPPER_AUDIT.md`. The latter defines the structural

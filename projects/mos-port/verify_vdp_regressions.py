@@ -369,6 +369,55 @@ def verify_oversized_packets(image: FirmwareImage) -> None:
     _verify_general_poll(harness, f"{image.label}: after legal 16-byte packet")
 
 
+def verify_framing_boundaries(image: FirmwareImage) -> None:
+    """Execute idle, recovery, partial, and every legal framing boundary."""
+    harness = ProtocolHarness(image)
+    idle_steps = [harness.feed(value) for value in (0x00, 0x7F, 0x42)]
+    _require(
+        harness.byte("_vdp_protocol_state") == 0,
+        f"{image.label}: unframed idle bytes changed parser state",
+    )
+
+    harness.machine.write8(image.symbols["_vdp_protocol_state"], 0xFF)
+    recovery_steps = harness.feed(0x55)
+    _require(
+        harness.byte("_vdp_protocol_state") == 0,
+        f"{image.label}: invalid parser state did not fail closed",
+    )
+
+    maximum_steps = max([recovery_steps, *idle_steps])
+    for length in range(BUFFER_LENGTH + 1):
+        harness = ProtocolHarness(image)
+        maximum_steps = max(maximum_steps, harness.feed(0x8A), harness.feed(length))
+        expected_header_state = 0 if length == 0 else 2
+        _require(
+            harness.byte("_vdp_protocol_state") == expected_header_state,
+            f"{image.label}: legal length {length} entered the wrong state",
+        )
+        payload = bytes((index * 37 + length) & 0xFF for index in range(length))
+        for index, value in enumerate(payload):
+            maximum_steps = max(maximum_steps, harness.feed(value))
+            remaining = length - index - 1
+            _require(
+                harness.byte("_vdp_protocol_len") == remaining,
+                f"{image.label}: legal length {length} counter drifted at byte {index}",
+            )
+            _require(
+                harness.byte("_vdp_protocol_state") == (0 if remaining == 0 else 2),
+                f"{image.label}: legal length {length} ended at the wrong byte",
+            )
+        _require(
+            harness.buffer()[:length] == payload,
+            f"{image.label}: legal length {length} payload bytes changed",
+        )
+        _verify_general_poll(harness, f"{image.label}: after legal length {length}")
+
+    _require(
+        maximum_steps <= 128,
+        f"{image.label}: linked parser exceeded the declared per-byte instruction budget",
+    )
+
+
 def reproduces_stale_length_bug(image: FirmwareImage) -> bool:
     """Return true only when the historical 17-byte discard consumes a later GP."""
     harness = ProtocolHarness(image)
@@ -514,6 +563,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             args.candidate_bin.expanduser().resolve(),
         )
         verify_handshake_structure(candidate)
+        verify_framing_boundaries(candidate)
         verify_oversized_packets(candidate)
 
         if args.check_reference_negative_control:
@@ -532,7 +582,8 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     print(
         "Linked VDP protocol verified: blocking GP wait precedes the banner; "
-        "all oversized lengths 17..255 discard exactly and resume with GP"
+        "idle/recovery and lengths 0..16 frame exactly; all oversized lengths "
+        "17..255 discard exactly and resume with GP"
     )
     if args.check_reference_negative_control:
         print(

@@ -12,32 +12,10 @@ if [[ ! -x "${python_bin}" ]]; then
     exit 1
 fi
 
-# These inputs define the qualified stock profile and cannot be overridden by
-# forwarded convenience arguments. Add a separate launcher when custom MOS or
-# VDP qualification begins.
-for emulator_arg in "$@"; do
-    case "${emulator_arg}" in
-        --firmware|--firmware=*|--mos|--mos=*|--vdp|--vdp=*|\
-        --sdcard|--sdcard=*|--sdcard-img|--sdcard-img=*|\
-        --renderer|--renderer=*|--verbose|-z|--zero)
-            printf 'run_emulator.sh manages this option: %s\n' \
-                "${emulator_arg}" >&2
-            exit 2
-            ;;
-    esac
-done
-
 "${python_bin}" "${script_dir}/verify_emulator.py" \
     --profile "${profile_dir}" \
     --fab-root "${fab_root}" \
     --quiet
 
 cd "${profile_dir}"
-export SDL_VIDEODRIVER="${SDL_VIDEODRIVER:-wayland}"
-exec ./fab-agon-emulator \
-    --renderer sw \
-    --firmware platform \
-    --sdcard ./sdcard \
-    --verbose \
-    -z \
-    "$@"
+exec ./fab-agon-emulator "$@"

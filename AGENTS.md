@@ -8,6 +8,9 @@ The checkouts reached through `upstream/` and `toolchains/` are inputs. Treat
 them as read-only unless the selected MOS checkout is explicitly a
 developer-owned worktree being edited under the workflow in `STARTHERE.md`.
 
+Read `OWNERSHIP.md` before changing source selection, preparation, translation,
+runtime, candidate profiles, qualification evidence, or task ownership.
+
 ## Current state
 
 The study concludes that an AgonDev MOS port is technically feasible. The first

@@ -106,7 +106,9 @@ def restore_fixture_modes(root: Path) -> None:
             path.chmod(0o644)
 
 
-def validate_output(output: bytes, firmware: Path) -> bytes:
+def validate_output(
+    output: bytes, firmware: Path, phase_marker: bytes | None = None
+) -> bytes:
     # Fab's fake VDP presents rendered lines with LF only; the target MOSlet
     # separately checks printf's byte count and the host golden checks raw CR/LF.
     required = (b"CONTRACT-BEGIN\n", b"FORMAT-PRINTF\n", b"CONTRACT-PASS\n")
@@ -126,6 +128,8 @@ def validate_output(output: bytes, firmware: Path) -> bytes:
             f"contract MOSlet reported failure for {firmware}:\n"
             + output.decode("latin-1")
         )
+    if phase_marker is not None and output.find(phase_marker, positions[0]) < 0:
+        raise ContractError(f"missing {phase_marker!r} for {firmware}")
     begin = positions[0]
     end = positions[-1] + len(required[-1])
     return output[begin:end]
@@ -168,7 +172,13 @@ def verify_target_format_coverage(project: Path) -> None:
         raise ContractError("target formatter coverage drift: " + "; ".join(details))
 
 
-def run(cli: Path, firmware: Path, sdcard: Path, timeout: float) -> bytes:
+def run(
+    cli: Path,
+    firmware: Path,
+    sdcard: Path,
+    timeout: float,
+    phase_marker: bytes | None = None,
+) -> bytes:
     if timeout <= 0:
         raise ContractError("timeout must be positive")
     try:
@@ -200,7 +210,25 @@ def run(cli: Path, firmware: Path, sdcard: Path, timeout: float) -> bytes:
         raise ContractError(
             f"emulator output exceeded {MAX_OUTPUT_BYTES} bytes for {firmware}"
         )
-    return validate_output(completed.stdout, firmware)
+    return validate_output(completed.stdout, firmware, phase_marker)
+
+
+def validate_persisted_fixture(root: Path) -> None:
+    persisted = root / "abi-write-dir/persisted.bin"
+    if not persisted.is_file() or persisted.is_symlink():
+        raise ContractError("first cold boot did not create the persisted file")
+    if persisted.read_bytes() != b"PORT-201-PERSIST\r\n":
+        raise ContractError("persisted file bytes differ after first cold boot")
+    unexpected = [
+        root / "abi-write-dir/stage.tmp",
+        root / "mos-write.tmp",
+        root / "mos-save.bin",
+        root / "mos-copy.bin",
+        root / "mos-renamed.bin",
+        root / "ffs-put.tmp",
+    ]
+    if any(path.exists() for path in unexpected):
+        raise ContractError("write probe left an unexpected staged artifact")
 
 
 def verify_artifacts(root: Path, objdump: Path) -> None:
@@ -217,6 +245,11 @@ def verify_artifacts(root: Path, objdump: Path) -> None:
         raise ContractError("contract MOSlet selected libagon's nanoprintf.o")
 
     expected_runtime_wrappers = {
+        "mos_load.o",
+        "mos_save.o",
+        "mos_del.o",
+        "mos_ren.o",
+        "mos_copy.o",
         "mos_extractstring.o",
         "mos_extractnumber.o",
         "mos_gsinit.o",
@@ -224,9 +257,14 @@ def verify_artifacts(root: Path, objdump: Path) -> None:
         "mos_substituteargs.o",
         "mos_resolvepath.o",
         "mos_fread.o",
+        "mos_fwrite.o",
+        "mos_fputc.o",
         "mos_getfil.o",
         "mos_feof.o",
         "ffs_fgets.o",
+        "ffs_fwrite.o",
+        "ffs_fputc.o",
+        "ffs_fputs.o",
         "ffs_ferror.o",
         "ffs_flseek_p.o",
         "ffs_dopen.o",
@@ -235,6 +273,10 @@ def verify_artifacts(root: Path, objdump: Path) -> None:
         "ffs_dfindfirst.o",
         "ffs_dfindnext.o",
         "ffs_stat.o",
+        "ffs_unlink.o",
+        "ffs_rename.o",
+        "ffs_mkdir.o",
+        "ffs_chdir.o",
         "ffs_getcwd.o",
         "ffs_getlabel.o",
     }
@@ -339,41 +381,53 @@ def main() -> int:
         with tempfile.TemporaryDirectory(prefix="mos-contract-sd-") as temporary:
             sdcard = Path(temporary)
             create_fixture(sdcard, args.binary)
-            set_fixture_read_only(sdcard)
             expected_fixture = fixture_snapshot(sdcard)
-            try:
-                candidate = run(
-                    cli, args.candidate.resolve(), sdcard, args.timeout
-                )
-                if fixture_snapshot(sdcard) != expected_fixture:
-                    raise ContractError("candidate changed the read-only hostfs fixture")
-                reference = run(
-                    cli, args.reference.resolve(), sdcard, args.timeout
-                )
-                if fixture_snapshot(sdcard) != expected_fixture:
-                    raise ContractError("reference changed the read-only hostfs fixture")
-            finally:
-                restore_fixture_modes(sdcard)
+            candidate_create = run(
+                cli, args.candidate.resolve(), sdcard, args.timeout,
+                b"WRITE-PHASE-CREATE\n",
+            )
+            validate_persisted_fixture(sdcard)
+            candidate_verify = run(
+                cli, args.candidate.resolve(), sdcard, args.timeout,
+                b"WRITE-PHASE-VERIFY\n",
+            )
+            if fixture_snapshot(sdcard) != expected_fixture:
+                raise ContractError("candidate did not restore its isolated hostfs fixture")
+            reference_create = run(
+                cli, args.reference.resolve(), sdcard, args.timeout,
+                b"WRITE-PHASE-CREATE\n",
+            )
+            validate_persisted_fixture(sdcard)
+            reference_verify = run(
+                cli, args.reference.resolve(), sdcard, args.timeout,
+                b"WRITE-PHASE-VERIFY\n",
+            )
+            if fixture_snapshot(sdcard) != expected_fixture:
+                raise ContractError("reference did not restore its isolated hostfs fixture")
     except (ContractError, OSError, subprocess.SubprocessError) as error:
         print(f"verify_contract.py: {error}", file=sys.stderr)
         return 1
 
-    if candidate != reference:
+    if (candidate_create, candidate_verify) != (reference_create, reference_verify):
         print(
             "verify_contract.py: candidate/reference contract output differs\n"
             "candidate:\n"
-            + candidate.decode("latin-1")
+            + candidate_create.decode("latin-1")
+            + candidate_verify.decode("latin-1")
             + "reference:\n"
-            + reference.decode("latin-1"),
+            + reference_create.decode("latin-1")
+            + reference_verify.decode("latin-1"),
             file=subprocess.sys.stderr,
         )
         return 1
     if args.show_contract:
-        print("candidate:\n" + candidate.decode("latin-1"), end="")
-        print("reference:\n" + reference.decode("latin-1"), end="")
+        print("candidate:\n" + candidate_create.decode("latin-1"), end="")
+        print(candidate_verify.decode("latin-1"), end="")
+        print("reference:\n" + reference_create.decode("latin-1"), end="")
+        print(reference_verify.decode("latin-1"), end="")
     print(
         "MOS contract verified on candidate and ZDS reference: target formatter "
-        "boundaries plus C/RST API argument and return paths"
+        "boundaries, C/RST API paths, and two-cold-boot FatFS persistence"
     )
     return 0
 

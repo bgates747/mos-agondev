@@ -1,5 +1,9 @@
 # mos-agondev
 
+This repository owns reusable AgonDev port infrastructure, not maintained MOS
+or EMOS product source. Read [OWNERSHIP.md](OWNERSHIP.md) before adding a
+source-specific rule, fixture, contract, or task.
+
 `mos-agondev` builds ZDS-oriented
 [`agon-mos`](https://github.com/AgonPlatform/agon-mos) source with the
 [AgonDev](https://github.com/AgonPlatform/agondev) toolchain. The maintained
@@ -128,11 +132,12 @@ After installing and profiling Fab as described in `STARTHERE.md`, launch the
 candidate with:
 
 ```bash
-make run-custom-emulator
+cd emulator
+./fab-agon-emulator
 ```
 
-If Fab is external, retain the same exported `FAB_ROOT` used during setup or
-prefix this Make invocation with it.
+The profile-local launcher is canonical. If Fab is external, retain the same
+exported `FAB_ROOT` while refreshing or verifying the profile.
 
 Confirm the Platform banner and prompt, keyboard editing, `dir`, `cd bin`,
 `help echo`, `time`, `credits`, and `mem`. When `fab-agon-emulator/` is a Git

@@ -130,6 +130,9 @@ class VdpRegressionTests(unittest.TestCase):
     def test_executes_all_oversized_lengths_and_legal_boundary(self) -> None:
         vdp.verify_oversized_packets(protocol_fixture())
 
+    def test_executes_idle_recovery_partial_and_all_legal_lengths(self) -> None:
+        vdp.verify_framing_boundaries(protocol_fixture())
+
     def test_stale_length_negative_control_is_behavioral(self) -> None:
         self.assertFalse(vdp.reproduces_stale_length_bug(protocol_fixture()))
         buggy = protocol_fixture(stale_length_bug=True)
@@ -174,6 +177,7 @@ class VdpRegressionTests(unittest.TestCase):
         stdout = io.StringIO()
         with mock.patch.object(vdp, "load_candidate", return_value=candidate), \
              mock.patch.object(vdp, "verify_handshake_structure") as handshake, \
+             mock.patch.object(vdp, "verify_framing_boundaries") as framing, \
              mock.patch.object(vdp, "verify_oversized_packets") as oversized, \
              mock.patch.object(vdp, "load_zds_reference") as load_reference, \
              contextlib.redirect_stdout(stdout):
@@ -187,6 +191,7 @@ class VdpRegressionTests(unittest.TestCase):
 
         self.assertEqual(status, 0)
         handshake.assert_called_once_with(candidate)
+        framing.assert_called_once_with(candidate)
         oversized.assert_called_once_with(candidate)
         load_reference.assert_not_called()
         self.assertNotIn("Pinned ZDS image", stdout.getvalue())
@@ -197,6 +202,7 @@ class VdpRegressionTests(unittest.TestCase):
         stdout = io.StringIO()
         with mock.patch.object(vdp, "load_candidate", return_value=candidate), \
              mock.patch.object(vdp, "verify_handshake_structure"), \
+             mock.patch.object(vdp, "verify_framing_boundaries"), \
              mock.patch.object(vdp, "verify_oversized_packets"), \
              mock.patch.object(
                  vdp, "load_zds_reference", return_value=reference

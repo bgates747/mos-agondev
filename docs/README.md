@@ -9,6 +9,8 @@ the original feasibility narrative.
   boundary.
 - `docs/upstream-findings.md` records confirmed AgonDev and Fab defects, their local
   workarounds, and reproducible reports for upstream maintainers.
+- `docs/port-200-qualification.md` records the completed generic portability,
+  ABI, emulator, and public-input improvements retained from PORT-200.
 - `projects/mos-port/README.md` describes the current firmware build.
 - `projects/mos-port/asm/README.md` documents the implemented assembly frontend.
 - `projects/mos-port/ld/README.md` documents the firmware linker contract.

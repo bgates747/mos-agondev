@@ -54,9 +54,16 @@ def main() -> None:
     require((worktree / "src/defines.h").is_file(), "Incomplete MOS probe worktree")
 
     profile = ROOT / "emulator"
-    fab_executable = profile / "fab-agon-emulator"
+    fab_launcher = profile / "fab-agon-emulator"
+    fab_executable = profile / "fab-agon-emulator.bin"
     stock_mos = profile / "firmware/mos_platform.bin"
     stock_vdp = profile / "firmware/vdp_platform.so"
+    require(
+        fab_launcher.is_file()
+        and not fab_launcher.is_symlink()
+        and os.access(fab_launcher, os.X_OK),
+        "Run scripts/setup_emulator.py to create the generated direct launcher",
+    )
     require(fab_executable.is_symlink(), "Run scripts/setup_emulator.py")
     require(
         fab_executable.is_file() and os.access(fab_executable, os.X_OK),
@@ -65,12 +72,20 @@ def main() -> None:
     require(stock_mos.is_file(), f"Missing stock Platform MOS: {stock_mos}")
     require(stock_vdp.is_file(), f"Missing stock Platform VDP: {stock_vdp}")
 
+    runtime_environment = os.environ.copy()
+    local_host_lib = Path("~").expanduser() / ".local" / "lib"
+    if local_host_lib.is_dir():
+        existing_library_path = runtime_environment.get("LD_LIBRARY_PATH")
+        runtime_environment["LD_LIBRARY_PATH"] = str(local_host_lib) + (
+            f":{existing_library_path}" if existing_library_path else ""
+        )
     help_result = subprocess.run(
         [str(fab_executable), "--help"],
         check=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
+        env=runtime_environment,
     ).stdout
     require("--firmware" in help_result, "Fab help lacks firmware selection")
     require("--sdcard <path>" in help_result, "Fab help lacks explicit SD-card option")
@@ -82,6 +97,7 @@ def main() -> None:
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
+            env=runtime_environment,
         ).stdout
         require("not found" not in dependencies, "Fab has an unresolved shared library")
 

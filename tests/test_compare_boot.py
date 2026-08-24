@@ -69,6 +69,20 @@ class CompareBootTests(unittest.TestCase):
             ],
         )
 
+    def test_help_inventory_accepts_only_explicit_reviewed_additions(self) -> None:
+        reference = ["List of commands:", "Cat, Echo, Help", "/ *help echo"]
+        candidate = ["List of commands:", "Cat, Custom, Echo, Help", "/ *help echo"]
+        self.assertEqual(
+            compare_boot.canonicalize_help_commands(
+                candidate, expected_additions=("Custom",)
+            ),
+            compare_boot.canonicalize_help_commands(reference),
+        )
+        with self.assertRaisesRegex(compare_boot.ParityError, "exactly one Custom"):
+            compare_boot.canonicalize_help_commands(
+                reference, expected_additions=("Custom",)
+            )
+
     def test_reports_stable_difference(self) -> None:
         reference = b"Agon Platform MOS Version 3.0.2 Arthur\n/ *credits\nFatFS\n"
         candidate = b"Agon Platform MOS Version 3.0.2 Arthur\n/ *credits\nOther\n"
