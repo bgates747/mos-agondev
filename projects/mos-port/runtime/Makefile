@@ -3,6 +3,7 @@ REPOSITORY := $(abspath ../../..)
 TOOLCHAIN ?= $(REPOSITORY)/toolchains/agondev
 PYTHON ?= $(REPOSITORY)/.venv/bin/python
 HOST_CC ?= cc
+C_OBJECT_RELATIVE_EXTRA ?=
 
 EZ80_CC := $(TOOLCHAIN)/bin/ez80-none-elf-clang
 EZ80_AS := $(TOOLCHAIN)/bin/ez80-none-elf-as
@@ -10,7 +11,7 @@ EZ80_LD := $(TOOLCHAIN)/bin/ez80-none-elf-ld
 NANOPRINTF_INCLUDE := $(RUNTIME_DIR)/vendor/nanoprintf
 BUILD := $(RUNTIME_DIR)/build
 C_OBJECT_ROOT := $(REPOSITORY)/projects/mos-port/obj
-C_OBJECT_RELATIVE := \
+C_OBJECT_RELATIVE_BASE := \
 	main.o \
 	src/clock.o \
 	src/i2c.o \
@@ -27,7 +28,10 @@ C_OBJECT_RELATIVE := \
 	src_fatfs/ffsystem.o \
 	src_fatfs/ffunicode.o \
 	src_umm_malloc/umm_malloc.o
+# Keep this inventory in the same deterministic order as C_SOURCES.
+C_OBJECT_RELATIVE := $(sort $(C_OBJECT_RELATIVE_BASE) $(C_OBJECT_RELATIVE_EXTRA))
 C_OBJECTS := $(addprefix $(C_OBJECT_ROOT)/,$(C_OBJECT_RELATIVE))
+C_OBJECT_EXTRA_ARGS := $(foreach object,$(C_OBJECT_RELATIVE_EXTRA),--c-object $(object))
 
 EZ80_FLAGS := -target ez80-none-elf -march=ez80 \
 	-mllvm -z80-gas-style -mllvm -z80-print-zero-offset \
@@ -70,7 +74,7 @@ link-probe: runtime-archive
 		$(C_OBJECTS) $(BUILD)/libmos_runtime.a
 
 audit: link-probe
-	$(PYTHON) audit_runtime.py
+	$(PYTHON) audit_runtime.py $(C_OBJECT_EXTRA_ARGS)
 
 formats:
 	$(PYTHON) scan_formats.py

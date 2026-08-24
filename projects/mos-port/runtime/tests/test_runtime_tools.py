@@ -45,6 +45,17 @@ class RuntimeToolTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unsafe"):
             configured_c_objects(Path("obj"), ["../foreign.o"])
 
+    def test_c_object_contract_accepts_reviewed_product_object(self) -> None:
+        root = Path("obj")
+        configured = configured_c_objects(
+            root, ["main.o", "src/clock.o", "src/emos.o"]
+        )
+        self.assertEqual(configured[-1], root / "src/emos.o")
+
+    def test_c_object_contract_rejects_duplicate_product_object(self) -> None:
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            configured_c_objects(Path("obj"), ["main.o", "main.o"])
+
     def test_concatenated_string_argument(self) -> None:
         self.assertEqual(decode_string_argument(' "left"  "\\x20right" '), "left right")
 

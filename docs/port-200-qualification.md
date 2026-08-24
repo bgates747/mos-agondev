@@ -31,3 +31,7 @@ This record does not claim EMOS behavior, module ABI, mode operation, EDP
 transport, or physical EMOS qualification. Those authorities live in
 `agon-emos` and `agon-extender`. The generic tools accept candidate-specific
 expectations only through explicit options or reviewed profiles.
+
+The maintained product-profile interface currently accepts additional C source
+units, their corresponding runtime objects, and reviewed candidate-only HELP
+commands. The source repository owns the profile and its tests.

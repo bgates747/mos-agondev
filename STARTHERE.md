@@ -218,6 +218,11 @@ Before starting another refresh, either restore or relocate an existing
 - Generated `.asm`, object, map, and firmware files are never sources of a
   change.
 
+A maintained product may pass `SOURCE_PROFILE=PATH` to declare additional C
+translation units, corresponding runtime objects, and reviewed HELP-command
+additions. The profile is owned by the product source repository. Generic
+build machinery consumes it but must not duplicate or infer product policy.
+
 The accepted frontend contract is in
 `docs/assembly-compatibility-strategy.md`; implementation details and the
 supported syntax boundary are in `projects/mos-port/asm/README.md`.

@@ -22,7 +22,9 @@ CFLAGS := -target ez80-none-elf -march=ez80 \
 	-std=gnu17 -Wall -Wextra -Werror=return-type -Oz -ffreestanding \
 	-fno-threadsafe-statics -Wa,-march=ez80+full
 
-C_SOURCES := \
+C_SOURCES_EXTRA ?=
+
+C_SOURCES_BASE := \
 	main.c \
 	src/clock.c \
 	src/i2c.c \
@@ -39,6 +41,10 @@ C_SOURCES := \
 	src_fatfs/ffsystem.c \
 	src_fatfs/ffunicode.c \
 	src_umm_malloc/umm_malloc.c
+
+# Source order is part of the linked-image identity. Sorting keeps product
+# profile additions deterministic without hard-coding product names here.
+C_SOURCES := $(sort $(C_SOURCES_BASE) $(C_SOURCES_EXTRA))
 
 C_OBJECTS := $(addprefix obj/,$(C_SOURCES:.c=.o))
 C_ASSEMBLY := $(addprefix inspect/c/,$(C_SOURCES:.c=.s))

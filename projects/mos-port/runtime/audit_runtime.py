@@ -141,10 +141,13 @@ def audit(
     link_probe: Path,
     runtime_archive: Path,
     policy: dict[str, object],
+    extra_c_objects: Iterable[str] = (),
 ) -> tuple[dict[str, object], list[str]]:
     errors: list[str] = []
     try:
-        object_paths = configured_c_objects(objects_root, policy["c_objects"])
+        object_paths = configured_c_objects(
+            objects_root, [*policy["c_objects"], *extra_c_objects]
+        )
     except ValueError as error:
         return {}, [str(error)]
     missing_objects = [str(path) for path in object_paths if not path.is_file()]
@@ -380,6 +383,12 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         default=repository / "projects/mos-port/obj",
     )
     parser.add_argument(
+        "--c-object",
+        action="append",
+        default=[],
+        help="append one reviewed product-profile C object path",
+    )
+    parser.add_argument(
         "--archive",
         type=Path,
         default=repository / "toolchains/agondev/lib/libagon.a",
@@ -438,6 +447,7 @@ def main(argv: list[str] | None = None) -> int:
         link_probe=args.link_probe.resolve(),
         runtime_archive=args.runtime_archive.resolve(),
         policy=policy,
+        extra_c_objects=args.c_object,
     )
     if args.json:
         print(json.dumps({"errors": errors, **report}, indent=2, sort_keys=True))

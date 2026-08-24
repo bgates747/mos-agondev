@@ -39,7 +39,7 @@ for maintained ZDS-oriented MOS-family source. It is not a MOS product fork.
    preparation profile for that input; an ongoing ZDS language feature belongs
    in the translator with semantic and diagnostic tests.
 4. Candidate-only command, ABI, media, or hardware expectations must be passed
-   through an explicit profile or option. Do not hard-code one product's
-   vocabulary into generic comparison machinery.
+   through `SOURCE_PROFILE`, another explicit option, or a reviewed fixture.
+   Do not hard-code one product's vocabulary into generic comparison machinery.
 5. Generated output is evidence only and must never be hand-edited to alter
    maintained behavior.

@@ -6,6 +6,16 @@ MOS_SOURCE ?= $(abspath agon-mos)
 FAB_ROOT ?= $(abspath fab-agon-emulator)
 AGON_DOCS_ROOT ?= $(abspath agon-docs)
 FAB_ROOT_ABS := $(abspath $(FAB_ROOT))
+SOURCE_PROFILE ?=
+
+ifneq ($(strip $(SOURCE_PROFILE)),)
+include $(SOURCE_PROFILE)
+endif
+
+C_SOURCES_EXTRA ?=
+C_OBJECT_RELATIVE_EXTRA ?=
+PARITY_EXPECTED_COMMANDS ?=
+PARITY_EXPECTED_COMMAND_ARGS := $(foreach command,$(PARITY_EXPECTED_COMMANDS),--expected-command $(command))
 
 .DEFAULT_GOAL := help
 
@@ -76,13 +86,13 @@ toolchain-probe:
 
 c-probe:
 	$(MAKE) -C projects/mos-port TOOLCHAIN=$(TOOLCHAIN) \
-		UPSTREAM=$(MOS_WORKTREE) clean
+		UPSTREAM=$(MOS_WORKTREE) C_SOURCES_EXTRA="$(C_SOURCES_EXTRA)" clean
 	$(MAKE) -C projects/mos-port TOOLCHAIN=$(TOOLCHAIN) \
-		UPSTREAM=$(MOS_WORKTREE) c-objects report
+		UPSTREAM=$(MOS_WORKTREE) C_SOURCES_EXTRA="$(C_SOURCES_EXTRA)" c-objects report
 
 c-compat-check: c-probe
 	$(MAKE) -C projects/mos-port TOOLCHAIN=$(TOOLCHAIN) \
-		UPSTREAM=$(MOS_WORKTREE) c-compat
+		UPSTREAM=$(MOS_WORKTREE) C_SOURCES_EXTRA="$(C_SOURCES_EXTRA)" c-compat
 
 asm-probe:
 	$(MAKE) -C projects/mos-port TOOLCHAIN=$(TOOLCHAIN) \
@@ -92,17 +102,19 @@ linker-check:
 	$(PYTHON) -B projects/mos-port/ld/verify_linker.py
 
 runtime-check: c-probe
-	$(MAKE) -C projects/mos-port/runtime verify
+	$(MAKE) -C projects/mos-port/runtime \
+		C_OBJECT_RELATIVE_EXTRA="$(C_OBJECT_RELATIVE_EXTRA)" verify
 
 firmware-check: worktree-check asm-probe runtime-check linker-check
 	$(MAKE) -C projects/mos-port TOOLCHAIN=$(TOOLCHAIN) \
-		UPSTREAM=$(MOS_WORKTREE) firmware
+		UPSTREAM=$(MOS_WORKTREE) C_SOURCES_EXTRA="$(C_SOURCES_EXTRA)" firmware
 
 firmware-boot-check: firmware-check emulator-check
 	$(PYTHON) -B projects/mos-port/verify_boot.py --fab-root "$(FAB_ROOT_ABS)"
 
 firmware-parity-check: firmware-boot-check
-	$(PYTHON) -B projects/mos-port/compare_boot.py --fab-root "$(FAB_ROOT_ABS)"
+	$(PYTHON) -B projects/mos-port/compare_boot.py --fab-root "$(FAB_ROOT_ABS)" \
+		$(PARITY_EXPECTED_COMMAND_ARGS)
 
 vdp-regression-check: firmware-check
 	$(PYTHON) -B projects/mos-port/verify_vdp_regressions.py
