@@ -33,6 +33,10 @@ the stock Platform VDP, mounts the local hostfs SD root, and passes the initial
 read-only shell comparison with the pinned ZDS image. The initial graphical
 human gate has passed; broader parity and hardware qualification remain.
 
+The 102,059-byte size describes the accepted `main` baseline. The `dev/sort`
+image is 102,062 bytes: its opt-in `qsort()` export adds one three-byte
+C-function-table pointer and no second sorting implementation.
+
 The root targets `firmware-check`, `firmware-boot-check`,
 `firmware-parity-check`, `vdp-regression-check`, `vdp-baseline-check`, and
 `run-custom-emulator` cover successive current-input and frozen-evidence gates.

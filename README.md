@@ -30,6 +30,10 @@ Start with [`STARTHERE.md`](STARTHERE.md). It covers fresh-clone setup, the
 normal edit/build cycle, optional project-local Fab setup, generated-file
 boundaries, and verification levels.
 
+The experimental `dev/sort` branch adds MOS C-function slot `0x12` for the
+runtime's existing `qsort()`. It is strictly opt-in and leaves directory
+enumeration unchanged; see [`docs/qsort-api.md`](docs/qsort-api.md).
+
 ## Fresh clone in brief
 
 The project requires Python 3.14 or newer and uses only the standard library.

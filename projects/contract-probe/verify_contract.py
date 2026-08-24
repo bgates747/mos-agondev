@@ -131,6 +131,23 @@ def validate_output(output: bytes, firmware: Path) -> bytes:
     return output[begin:end]
 
 
+def validate_qsort_extension(
+    output: bytes, firmware: Path, *, expected_available: bool
+) -> bytes:
+    """Validate the versioned extension marker and remove it for parity."""
+    available = b"QSORT-AVAILABLE\n"
+    unavailable = b"QSORT-UNAVAILABLE\n"
+    expected = available if expected_available else unavailable
+    forbidden = unavailable if expected_available else available
+    if output.count(expected) != 1 or forbidden in output:
+        state = "available" if expected_available else "unavailable"
+        raise ContractError(
+            f"qsort extension was not {state} for {firmware}:\n"
+            + output.decode("latin-1")
+        )
+    return output.replace(expected, b"")
+
+
 def verify_target_format_coverage(project: Path) -> None:
     """Tie the target MOSlet's one-per-spelling markers to the MOS inventory."""
     scanner = project / "projects/mos-port/runtime/scan_formats.py"
@@ -210,6 +227,7 @@ def verify_artifacts(root: Path, objdump: Path) -> None:
         "obj/mos_getError_fixed.o",
         "obj/ffs_setlabel_fixed.o",
         "obj/mos_flseek_p_fixed.o",
+        "obj/mos_getqsort.o",
     ):
         if required not in map_text:
             raise ContractError(f"contract map omits required local object: {required}")
@@ -276,6 +294,26 @@ def verify_artifacts(root: Path, objdump: Path) -> None:
         normalized = re.sub(r"\s+", " ", disassembly)
         if not all(instruction in normalized for instruction in instructions):
             raise ContractError(f"corrected {object_name} disassembly changed")
+
+    qsort_getter = subprocess.run(
+        [str(objdump), "-dr", str(root / "obj/mos_getqsort.o")],
+        check=True,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    ).stdout
+    qsort_getter = re.sub(r"\s+", " ", qsort_getter)
+    expected_qsort_getter = (
+        "ld c,0x00",
+        "ld b,0x12",
+        "ld a,0x50",
+        "rst.lil 0x08",
+        "ret",
+    )
+    if not all(instruction in qsort_getter for instruction in expected_qsort_getter):
+        raise ContractError("qsort function-slot getter disassembly changed")
+    if re.search(r"libagon\.a\(qsort\.o\)", map_text):
+        raise ContractError("contract MOSlet linked its own qsort implementation")
 
 
 def main() -> int:
@@ -358,6 +396,12 @@ def main() -> int:
         print(f"verify_contract.py: {error}", file=sys.stderr)
         return 1
 
+    candidate = validate_qsort_extension(
+        candidate, args.candidate, expected_available=True
+    )
+    reference = validate_qsort_extension(
+        reference, args.reference, expected_available=False
+    )
     if candidate != reference:
         print(
             "verify_contract.py: candidate/reference contract output differs\n"
@@ -372,8 +416,8 @@ def main() -> int:
         print("candidate:\n" + candidate.decode("latin-1"), end="")
         print("reference:\n" + reference.decode("latin-1"), end="")
     print(
-        "MOS contract verified on candidate and ZDS reference: target formatter "
-        "boundaries plus C/RST API argument and return paths"
+        "MOS contract verified: candidate qsort C-function extension plus "
+        "candidate/reference formatter and C/RST API contracts"
     )
     return 0
 

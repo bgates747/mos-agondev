@@ -19,6 +19,9 @@ the original feasibility narrative.
 - `projects/contract-probe/README.md` and
   `projects/contract-probe/WRAPPER_AUDIT.md` define the current target ABI
   evidence and its limits.
+- `docs/qsort-api.md` specifies the experimental `dev/sort` C-function slot,
+  calling convention, opt-in behavior, comparator-owned directory policy, and
+  target-side evidence.
 
 Use `STARTHERE.md` for setup and the normal development cycle. Use `TODO.md` for
 unfinished work. Historical reasoning, dated measurements, and chronological

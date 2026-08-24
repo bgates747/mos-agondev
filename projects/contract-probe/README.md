@@ -10,6 +10,11 @@ MOSlet also exercises read-only string extraction and GS translation state,
 argument substitution, six-argument path resolution, simple-handle and
 structured file reads, pointer-returning file helpers, stat, directory
 enumeration and matching, current-directory lookup, and volume-label lookup.
+On the `dev/sort` branch it additionally retrieves C-function slot `0x12`,
+passes an application comparator callback to MOS's `qsort()`, and verifies the
+ordering of application-owned directory-like records by separate filename and
+FAT-date comparators. The pinned v3.0.2 reference must report that extension as
+unavailable; the remaining contract transcript is still compared exactly.
 
 The pinned wrapper audit identifies three concrete stack-access defects in
 `mos_getError`, `ffs_setlabel`, and `mos_flseek_p`. Minimal project-local

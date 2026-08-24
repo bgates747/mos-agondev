@@ -1,6 +1,7 @@
 #include <agon/mos.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define TARGET_GOLDEN_PATTERN(pattern) ((void)sizeof(pattern))
@@ -11,6 +12,35 @@
 static unsigned int failures;
 static char debug[128];
 static FIL sparse_file;
+
+typedef void (*mos_qsort_fn)(void *, size_t, size_t,
+                             int (*)(const void *, const void *));
+
+extern mos_qsort_fn mos_getqsort(void);
+
+typedef struct QsortEntry {
+    const char *name;
+    uint16_t fat_date;
+} QsortEntry;
+
+static unsigned int qsort_name_comparisons;
+static unsigned int qsort_date_comparisons;
+
+static int compare_entry_name(const void *left, const void *right) {
+    const QsortEntry *a = left;
+    const QsortEntry *b = right;
+
+    ++qsort_name_comparisons;
+    return strcmp(a->name, b->name);
+}
+
+static int compare_entry_date(const void *left, const void *right) {
+    const QsortEntry *a = left;
+    const QsortEntry *b = right;
+
+    ++qsort_date_comparisons;
+    return (a->fat_date > b->fat_date) - (a->fat_date < b->fat_date);
+}
 
 static void emit(const char *text) {
     while (*text != '\0') {
@@ -88,6 +118,38 @@ static void check_formatter(void) {
               strcmp(buffer, "-8388608") == 0,
           "format-s24-width-6-overflow");
     check(printf("FORMAT-PRINTF\n\r") == 15, "format-printf-raw-newline");
+}
+
+static void check_qsort_api(void) {
+    QsortEntry by_name[] = {
+        {"zeta.mod", 4}, {"alpha.wav", 2}, {"middle.mp3", 3}
+    };
+    QsortEntry by_date[] = {
+        {"newest.mod", 9}, {"oldest.wav", 1}, {"middle.mp3", 5}
+    };
+    mos_qsort_fn sort = mos_getqsort();
+
+    if (sort == NULL) {
+        emit("QSORT-UNAVAILABLE\r\n");
+        return;
+    }
+
+    qsort_name_comparisons = 0;
+    sort(by_name, sizeof(by_name) / sizeof(by_name[0]), sizeof(by_name[0]),
+         compare_entry_name);
+    check(qsort_name_comparisons != 0 &&
+              strcmp(by_name[0].name, "alpha.wav") == 0 &&
+              strcmp(by_name[1].name, "middle.mp3") == 0 &&
+              strcmp(by_name[2].name, "zeta.mod") == 0,
+          "api-qsort-filename-comparator");
+
+    qsort_date_comparisons = 0;
+    sort(by_date, sizeof(by_date) / sizeof(by_date[0]), sizeof(by_date[0]),
+         compare_entry_date);
+    check(qsort_date_comparisons != 0 && by_date[0].fat_date == 1 &&
+              by_date[1].fat_date == 5 && by_date[2].fat_date == 9,
+          "api-qsort-date-comparator");
+    emit("QSORT-AVAILABLE\r\n");
 }
 
 static void check_string_api(void) {
@@ -434,6 +496,7 @@ static void check_mos_api(void) {
 int main(void) {
     emit("CONTRACT-BEGIN\r\n");
     check_formatter();
+    check_qsort_api();
     check_number_api();
     check_string_api();
     check_mos_api();

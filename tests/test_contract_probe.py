@@ -73,6 +73,36 @@ class ContractProbeTests(unittest.TestCase):
         with self.assertRaisesRegex(verify_contract.ContractError, "ordered"):
             verify_contract.validate_output(output, Path("candidate.bin"))
 
+    def test_qsort_extension_marker_is_version_aware_and_normalized(self) -> None:
+        candidate = b"CONTRACT-BEGIN\nQSORT-AVAILABLE\nCONTRACT-PASS\n"
+        reference = b"CONTRACT-BEGIN\nQSORT-UNAVAILABLE\nCONTRACT-PASS\n"
+        self.assertEqual(
+            verify_contract.validate_qsort_extension(
+                candidate, Path("candidate.bin"), expected_available=True
+            ),
+            b"CONTRACT-BEGIN\nCONTRACT-PASS\n",
+        )
+        self.assertEqual(
+            verify_contract.validate_qsort_extension(
+                reference, Path("reference.bin"), expected_available=False
+            ),
+            b"CONTRACT-BEGIN\nCONTRACT-PASS\n",
+        )
+
+    def test_qsort_extension_rejects_wrong_or_ambiguous_marker(self) -> None:
+        with self.assertRaises(verify_contract.ContractError):
+            verify_contract.validate_qsort_extension(
+                b"QSORT-UNAVAILABLE\n",
+                Path("candidate.bin"),
+                expected_available=True,
+            )
+        with self.assertRaises(verify_contract.ContractError):
+            verify_contract.validate_qsort_extension(
+                b"QSORT-AVAILABLE\nQSORT-UNAVAILABLE\n",
+                Path("candidate.bin"),
+                expected_available=True,
+            )
+
     def test_fixture_snapshot_detects_content_mutation(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
