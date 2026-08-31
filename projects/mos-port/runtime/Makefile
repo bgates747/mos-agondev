@@ -4,6 +4,7 @@ TOOLCHAIN ?= $(REPOSITORY)/toolchains/agondev
 PYTHON ?= $(REPOSITORY)/.venv/bin/python
 HOST_CC ?= cc
 C_OBJECT_RELATIVE_EXTRA ?=
+ASSEMBLY_SOURCE ?= $(REPOSITORY)/projects/mos-port/worktree
 
 EZ80_CC := $(TOOLCHAIN)/bin/ez80-none-elf-clang
 EZ80_AS := $(TOOLCHAIN)/bin/ez80-none-elf-as
@@ -74,7 +75,8 @@ link-probe: runtime-archive
 		$(C_OBJECTS) $(BUILD)/libmos_runtime.a
 
 audit: link-probe
-	$(PYTHON) audit_runtime.py $(C_OBJECT_EXTRA_ARGS)
+	$(PYTHON) audit_runtime.py --assembly "$(ASSEMBLY_SOURCE)" \
+		$(C_OBJECT_EXTRA_ARGS)
 
 formats:
 	$(PYTHON) scan_formats.py

@@ -23,7 +23,9 @@ headless boot and shell-parity gates.
    `runtime_policy.json`, so translated assembly below `obj/asm` cannot alter
    the runtime closure. It classifies providers as existing C objects,
    maintained MOS assembly `XDEF`s, linker symbols, local runtime objects, or
-   AgonDev archive members.
+   AgonDev archive members. The parent build passes the same configured
+   maintained-source tree used for translation as `ASSEMBLY_SOURCE`; the audit
+   must not silently scan a different default prepared tree.
 2. `runtime_policy.json` currently allows 43 compiler-helper members and 22
    freestanding libc members from the pinned AgonDev archive. The generated
    archive adds two local objects, for 67 explicit members total.

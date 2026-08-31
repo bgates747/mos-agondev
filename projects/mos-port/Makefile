@@ -16,13 +16,14 @@ PREPARATION_METADATA := $(UPSTREAM)/.mos-agondev-worktree.json
 CPPFLAGS := -Iinclude -I$(UPSTREAM)/src -I$(UPSTREAM)/src_fatfs \
 	-I$(UPSTREAM)/src_startup -I$(UPSTREAM)/src_umm_malloc \
 	-nostdinc -isystem $(TOOLCHAIN)/include \
-	-DAGONDEV -D_EZ80 -D_EZ80F92 -DNDEBUG
+	-DAGONDEV -D_EZ80 -D_EZ80F92 -DNDEBUG $(CPPFLAGS_EXTRA)
 CFLAGS := -target ez80-none-elf -march=ez80 \
 	-mllvm -z80-gas-style -mllvm -z80-print-zero-offset \
 	-std=gnu17 -Wall -Wextra -Werror=return-type -Oz -ffreestanding \
 	-fno-threadsafe-statics -Wa,-march=ez80+full
 
 C_SOURCES_EXTRA ?=
+CPPFLAGS_EXTRA ?=
 
 C_SOURCES_BASE := \
 	main.c \

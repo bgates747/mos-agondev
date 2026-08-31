@@ -165,6 +165,12 @@ drift-checked initial portability edits. The firmware build automatically runs
 the assembly compatibility frontend, assembles its generated units, links the
 runtime, and verifies the image.
 
+For a bounded product experiment that must not replace the current prepared
+tree, pass explicit `--upstream` and `--destination` paths to preparation and
+the same destination as `MOS_WORKTREE` to Make. Named `worktree-*` directories
+under `projects/mos-port` are ignored disposable outputs; record the maintained
+source identity and exact preparation command in the owning product task.
+
 If Fab is installed and profiled, run the complete configured-input gate with:
 
 ```bash
@@ -219,9 +225,12 @@ Before starting another refresh, either restore or relocate an existing
   change.
 
 A maintained product may pass `SOURCE_PROFILE=PATH` to declare additional C
-translation units, corresponding runtime objects, and reviewed HELP-command
+translation units, corresponding runtime objects, product-specific
+preprocessor definitions through `CPPFLAGS_EXTRA`, and reviewed HELP-command
 additions. The profile is owned by the product source repository. Generic
 build machinery consumes it but must not duplicate or infer product policy.
+`CPPFLAGS_EXTRA` is an explicit product-profile input; do not use it to hide a
+generic compiler, header, or source-compatibility workaround.
 
 The accepted frontend contract is in
 `docs/assembly-compatibility-strategy.md`; implementation details and the

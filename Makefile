@@ -14,6 +14,7 @@ endif
 
 C_SOURCES_EXTRA ?=
 C_OBJECT_RELATIVE_EXTRA ?=
+CPPFLAGS_EXTRA ?=
 PARITY_EXPECTED_COMMANDS ?=
 PARITY_EXPECTED_COMMAND_ARGS := $(foreach command,$(PARITY_EXPECTED_COMMANDS),--expected-command $(command))
 
@@ -86,13 +87,16 @@ toolchain-probe:
 
 c-probe:
 	$(MAKE) -C projects/mos-port TOOLCHAIN=$(TOOLCHAIN) \
-		UPSTREAM=$(MOS_WORKTREE) C_SOURCES_EXTRA="$(C_SOURCES_EXTRA)" clean
+		UPSTREAM=$(MOS_WORKTREE) C_SOURCES_EXTRA="$(C_SOURCES_EXTRA)" \
+		CPPFLAGS_EXTRA="$(CPPFLAGS_EXTRA)" clean
 	$(MAKE) -C projects/mos-port TOOLCHAIN=$(TOOLCHAIN) \
-		UPSTREAM=$(MOS_WORKTREE) C_SOURCES_EXTRA="$(C_SOURCES_EXTRA)" c-objects report
+		UPSTREAM=$(MOS_WORKTREE) C_SOURCES_EXTRA="$(C_SOURCES_EXTRA)" \
+		CPPFLAGS_EXTRA="$(CPPFLAGS_EXTRA)" c-objects report
 
 c-compat-check: c-probe
 	$(MAKE) -C projects/mos-port TOOLCHAIN=$(TOOLCHAIN) \
-		UPSTREAM=$(MOS_WORKTREE) C_SOURCES_EXTRA="$(C_SOURCES_EXTRA)" c-compat
+		UPSTREAM=$(MOS_WORKTREE) C_SOURCES_EXTRA="$(C_SOURCES_EXTRA)" \
+		CPPFLAGS_EXTRA="$(CPPFLAGS_EXTRA)" c-compat
 
 asm-probe:
 	$(MAKE) -C projects/mos-port TOOLCHAIN=$(TOOLCHAIN) \
@@ -103,11 +107,13 @@ linker-check:
 
 runtime-check: c-probe
 	$(MAKE) -C projects/mos-port/runtime \
-		C_OBJECT_RELATIVE_EXTRA="$(C_OBJECT_RELATIVE_EXTRA)" verify
+		C_OBJECT_RELATIVE_EXTRA="$(C_OBJECT_RELATIVE_EXTRA)" \
+		ASSEMBLY_SOURCE="$(MOS_WORKTREE)" verify
 
 firmware-check: worktree-check asm-probe runtime-check linker-check
 	$(MAKE) -C projects/mos-port TOOLCHAIN=$(TOOLCHAIN) \
-		UPSTREAM=$(MOS_WORKTREE) C_SOURCES_EXTRA="$(C_SOURCES_EXTRA)" firmware
+		UPSTREAM=$(MOS_WORKTREE) C_SOURCES_EXTRA="$(C_SOURCES_EXTRA)" \
+		CPPFLAGS_EXTRA="$(CPPFLAGS_EXTRA)" firmware
 
 firmware-boot-check: firmware-check emulator-check
 	$(PYTHON) -B projects/mos-port/verify_boot.py --fab-root "$(FAB_ROOT_ABS)"
@@ -141,12 +147,7 @@ binary-compare-record: firmware-check
 		MOS_SOURCE=$(abspath upstream/agon-mos) record
 
 run-custom-emulator: firmware-check emulator-check
-	@cd emulator && exec ./fab-agon-emulator \
-		--renderer sw \
-		--firmware platform \
-		--mos ../projects/mos-port/bin/MOS.bin \
-		--sdcard ./sdcard \
-		--verbose -z
+	@cd emulator && exec ./fab-agon-emulator
 
 probe-output-check:
 	$(PYTHON) scripts/verify_probe_outputs.py

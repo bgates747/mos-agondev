@@ -23,3 +23,4 @@ projects/binary-compare/artifacts/
 projects/mos-port/inspect/
 projects/mos-port/worktree/
 projects/mos-port/worktree.backup/
+projects/mos-port/worktree-*/

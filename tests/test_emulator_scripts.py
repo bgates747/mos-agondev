@@ -19,6 +19,13 @@ import verify_emulator  # noqa: E402
 
 
 class EmulatorScriptTests(unittest.TestCase):
+    def test_make_target_defers_managed_options_to_profile_launcher(self) -> None:
+        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+        target = makefile.split("run-custom-emulator:", 1)[1].split("\n\n", 1)[0]
+        self.assertIn("exec ./fab-agon-emulator", target)
+        for option in ("--renderer", "--firmware", "--mos", "--sdcard", "--verbose"):
+            self.assertNotIn(option, target)
+
     def setUp(self) -> None:
         self.temporary_directory = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary_directory.cleanup)
