@@ -61,6 +61,13 @@ inputs. Reference-owned checkouts remain read-only; a developer-owned
 Run `make verify` for unit, source, compiler, linker, runtime, complete-image,
 headless boot, hostfs, and limited ZDS-reference parity checks.
 
+Build maintained MOS products through the repository-root `firmware-check` or
+`verify` target so every `FIRMWARE_LINK_CHECKS` entry owned by the selected
+source profile runs against the final ELF. Do not treat a direct
+`projects/mos-port` build as a qualified product build. Fab exchanges complete
+UART bytes without an independently clocked VDP endpoint, so emulator success
+does not validate a programmed baud divisor or physical UART timing.
+
 ## Emulator gate
 
 Every emulator-coupled change must remain uncommitted and unpushed until the

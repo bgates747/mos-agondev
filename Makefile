@@ -17,6 +17,7 @@ C_OBJECT_RELATIVE_EXTRA ?=
 CPPFLAGS_EXTRA ?=
 PARITY_EXPECTED_COMMANDS ?=
 PARITY_EXPECTED_COMMAND_ARGS := $(foreach command,$(PARITY_EXPECTED_COMMANDS),--expected-command $(command))
+FIRMWARE_LINK_CHECKS ?=
 
 .DEFAULT_GOAL := help
 
@@ -24,7 +25,7 @@ PARITY_EXPECTED_COMMAND_ARGS := $(foreach command,$(PARITY_EXPECTED_COMMANDS),--
 	check-environment toolchain-probe c-probe probe-output-check emulator-check \
 	c-compat-check asm-probe linker-check runtime-check firmware-check firmware-boot-check \
 	firmware-parity-check vdp-regression-check vdp-baseline-check contract-check run-custom-emulator \
-	binary-reference binary-compare binary-compare-record verify baseline-check clean
+	profile-linked-check binary-reference binary-compare binary-compare-record verify baseline-check clean
 
 .NOTPARALLEL: verify baseline-check firmware-check
 
@@ -40,6 +41,7 @@ help:
 	@echo "linker-check      exercise production firmware layout assertions"
 	@echo "runtime-check     audit the allow-listed firmware runtime"
 	@echo "firmware-check    build and verify a fully resolved MOS image"
+	@echo "profile-linked-check run configured product-owned linked-image checks"
 	@echo "firmware-boot-check boot the custom image and exercise directory-backed SD"
 	@echo "firmware-parity-check compare safe shell output with the ZDS image"
 	@echo "vdp-regression-check execute linked VDP handshake/oversize regressions"
@@ -114,6 +116,21 @@ firmware-check: worktree-check asm-probe runtime-check linker-check
 	$(MAKE) -C projects/mos-port TOOLCHAIN=$(TOOLCHAIN) \
 		UPSTREAM=$(MOS_WORKTREE) C_SOURCES_EXTRA="$(C_SOURCES_EXTRA)" \
 		CPPFLAGS_EXTRA="$(CPPFLAGS_EXTRA)" firmware
+	$(MAKE) profile-linked-check
+
+profile-linked-check:
+	@set -eu; \
+	for checker in $(FIRMWARE_LINK_CHECKS); do \
+		test -f "$$checker" || { \
+			echo "missing profile-linked checker: $$checker" >&2; \
+			exit 1; \
+		}; \
+		$(PYTHON) -B "$$checker" \
+			--source "$(MOS_WORKTREE)" \
+			--elf "$(abspath projects/mos-port/bin/MOS.elf)" \
+			--nm "$(abspath $(TOOLCHAIN)/bin/ez80-none-elf-nm)" \
+			--objdump "$(abspath $(TOOLCHAIN)/bin/ez80-none-elf-objdump)"; \
+	done
 
 firmware-boot-check: firmware-check emulator-check
 	$(PYTHON) -B projects/mos-port/verify_boot.py --fab-root "$(FAB_ROOT_ABS)"

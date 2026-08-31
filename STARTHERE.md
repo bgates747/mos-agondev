@@ -227,10 +227,26 @@ Before starting another refresh, either restore or relocate an existing
 A maintained product may pass `SOURCE_PROFILE=PATH` to declare additional C
 translation units, corresponding runtime objects, product-specific
 preprocessor definitions through `CPPFLAGS_EXTRA`, and reviewed HELP-command
-additions. The profile is owned by the product source repository. Generic
-build machinery consumes it but must not duplicate or infer product policy.
+additions. It may also list product-owned Python checkers in
+`FIRMWARE_LINK_CHECKS`. The root `firmware-check` target invokes every listed
+checker against the prepared source and final ELF through a fixed
+`--source`, `--elf`, `--nm`, and `--objdump` interface. The profile is owned by
+the product source repository. Generic build machinery consumes it but must
+not duplicate or infer product policy.
 `CPPFLAGS_EXTRA` is an explicit product-profile input; do not use it to hide a
 generic compiler, header, or source-compatibility workaround.
+
+AgonDev correctly models the eZ80 ABI's 24-bit `unsigned int`. Assignment to a
+32-bit destination does not widen an arithmetic expression that has already
+been evaluated at 24-bit width. Treat inherited code that implicitly relies on
+ZDS intermediate widths as a portability hazard, especially when it derives
+hardware clocks, divisors, addresses, or transfer sizes. Put the corresponding
+source-and-linked-image invariant in the product profile; emulator boot alone
+is not evidence for a physical timing value.
+
+Use the repository-root `firmware-check` for a supported product build. A
+direct `projects/mos-port` sub-build deliberately provides only generic link
+checks and does not satisfy profile-owned firmware invariants.
 
 The accepted frontend contract is in
 `docs/assembly-compatibility-strategy.md`; implementation details and the

@@ -38,3 +38,11 @@ The root targets `firmware-check`, `firmware-boot-check`,
 `run-custom-emulator` cover successive current-input and frozen-evidence gates.
 The exact scope and remaining gaps of the deterministic CLI comparison are in
 [`PARITY.md`](PARITY.md).
+
+Product profiles may add `FIRMWARE_LINK_CHECKS`; the repository-root
+`firmware-check` runs them after the generic final-image verifier. This is the
+supported product build boundary. Calling this directory's `firmware` target
+directly does not run product-owned invariants. In particular, Fab's UART model
+does not compare the programmed eZ80 baud against an independently clocked VDP
+receiver, so emulator boot cannot replace a product's linked baud-divisor check
+or physical UART qualification.

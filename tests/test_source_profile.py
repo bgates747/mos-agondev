@@ -26,6 +26,7 @@ class SourceProfileTests(unittest.TestCase):
             "C_OBJECT_RELATIVE_EXTRA",
             "CPPFLAGS_EXTRA",
             "PARITY_EXPECTED_COMMANDS",
+            "FIRMWARE_LINK_CHECKS",
         ):
             self.assertIn(name, root_make)
         self.assertIn("$(C_SOURCES_EXTRA)", port_make)
@@ -34,6 +35,10 @@ class SourceProfileTests(unittest.TestCase):
         self.assertIn('ASSEMBLY_SOURCE="$(MOS_WORKTREE)"', root_make)
         self.assertIn('--assembly "$(ASSEMBLY_SOURCE)"', runtime_make)
         self.assertIn("$(sort $(C_SOURCES_BASE) $(C_SOURCES_EXTRA))", port_make)
+        self.assertIn("$(MAKE) profile-linked-check", root_make)
+        self.assertIn("for checker in $(FIRMWARE_LINK_CHECKS)", root_make)
+        for argument in ("--source", "--elf", "--nm", "--objdump"):
+            self.assertIn(argument, root_make)
         self.assertIn(
             "$(sort $(C_OBJECT_RELATIVE_BASE) $(C_OBJECT_RELATIVE_EXTRA))",
             runtime_make,
