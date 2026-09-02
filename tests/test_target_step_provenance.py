@@ -32,7 +32,13 @@ if sys.argv[1:] == ["--version"]:
     raise SystemExit(0)
 if "-###" in sys.argv:
     selected = Path(sys.argv[sys.argv.index("--driver-tool") + 1])
-    print(json.dumps(str(selected)) + ' "--synthetic-assembly"', file=sys.stderr)
+    print(
+        json.dumps(str(selected))
+        + " "
+        + json.dumps(f"-fdebug-compilation-dir={Path.cwd()}")
+        + ' "--synthetic-assembly"',
+        file=sys.stderr,
+    )
     raise SystemExit(0)
 
 parser = argparse.ArgumentParser()
@@ -222,6 +228,10 @@ class TargetStepProvenanceTests(unittest.TestCase):
             "${TOOLCHAIN}/nested-as",
             record["driver_selection"][0]["probe_output"],
         )
+        self.assertIn(
+            '"-fdebug-compilation-dir=${BUILD}"',
+            record["driver_selection"][0]["probe_output"],
+        )
         self.assertTrue(
             all(item["version_output_sha256"] for item in record["executables"])
         )
@@ -250,6 +260,46 @@ class TargetStepProvenanceTests(unittest.TestCase):
         )
         self.assertIn("${TOOLCHAIN}/fake-target-tool", record["command"])
         self.assertNotIn(str(self.root), json.dumps(record))
+
+    def test_normalize_prefers_longest_delimited_root_without_prefix_matches(
+        self,
+    ) -> None:
+        outer = self.root / "outer"
+        nested = outer / "nested"
+        nested.mkdir(parents=True)
+        roots = [
+            record_target_step.Root("OUTER", str(outer), str(outer)),
+            record_target_step.Root("NESTED", str(nested), str(nested)),
+        ]
+
+        for delimiter in ('"', "'", "`", ",", ";", ":", "]", ")", " ", "\t", "\n"):
+            with self.subTest(delimiter=repr(delimiter)):
+                self.assertEqual(
+                    record_target_step.normalize(
+                        f"-fdebug-compilation-dir={nested}{delimiter}", roots
+                    ),
+                    f"-fdebug-compilation-dir=${{NESTED}}{delimiter}",
+                )
+        self.assertEqual(
+            record_target_step.normalize(f"{nested}/unit.o", roots),
+            "${NESTED}/unit.o",
+        )
+        self.assertEqual(
+            record_target_step.normalize(str(nested), roots),
+            "${NESTED}",
+        )
+
+        isolated = self.root / "isolated"
+        isolated.mkdir()
+        isolated_roots = [
+            record_target_step.Root("ISOLATED", str(isolated), str(isolated))
+        ]
+        for suffix in ("other", "-other", "_other", ".other"):
+            with self.subTest(suffix=suffix):
+                value = f"{isolated}{suffix}"
+                self.assertEqual(
+                    record_target_step.normalize(value, isolated_roots), value
+                )
 
     def test_driver_selection_mismatch_fails_before_execution(self) -> None:
         selected = self.toolchain / "selected-as"

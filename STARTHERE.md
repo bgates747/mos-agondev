@@ -197,6 +197,10 @@ stale outputs and records the actual argv and working directory using stable
 `BUILD_TOOL`, `BUILD`, `PREPARED`, `TOOLCHAIN`, `PYTHON_ENV`, and
 `PROVENANCE` placeholders. `PYTHON_ENV` separates the ignored virtual
 environment and its interpreter symlink from the tracked build-tool root.
+In argv and transcript text, substitution selects the longest declared
+lexical or resolved root at an exact-root, descendant-path, or conservative
+compiler-text delimiter boundary. A declared root that is only a prefix of a
+longer path component is not substituted.
 Each record binds the recorder; executable and declared nested-tool hashes and
 version output; explicit external-assembler selection flags and a sanitized
 Clang driver probe that proves the exact assembler selected for every object

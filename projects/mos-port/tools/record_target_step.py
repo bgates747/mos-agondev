@@ -26,6 +26,7 @@ import uuid
 
 SCHEMA_VERSION = 1
 ROOT_NAME = re.compile(r"^[A-Z][A-Z0-9_]*$")
+NORMALIZATION_BOUNDARY = r"(?=$|/|[\s\"'`,;:\]\)])"
 SESSION_MARKER = ".mos-agondev-provenance-session.json"
 CHILD_ENVIRONMENT = {
     "LANG": "C",
@@ -193,14 +194,20 @@ def parse_roots(values: Iterable[str], cwd: Path) -> list[Root]:
 
 
 def normalize(value: str, roots: Sequence[Root]) -> str:
-    result = value
+    candidates: list[tuple[str, str]] = []
     for root in roots:
         replacement = "${" + root.name + "}"
-        candidates = sorted({root.lexical, root.resolved}, key=len, reverse=True)
-        for candidate in candidates:
-            result = re.sub(
-                re.escape(candidate) + r"(?=$|/)", replacement, result
-            )
+        candidates.extend(
+            (candidate, replacement)
+            for candidate in sorted({root.lexical, root.resolved})
+        )
+    result = value
+    for candidate, replacement in sorted(
+        candidates, key=lambda item: len(item[0]), reverse=True
+    ):
+        result = re.sub(
+            re.escape(candidate) + NORMALIZATION_BOUNDARY, replacement, result
+        )
     return result
 
 
