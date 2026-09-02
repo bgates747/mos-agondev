@@ -2,6 +2,10 @@ RUNTIME_DIR := $(abspath .)
 REPOSITORY := $(abspath ../../..)
 TOOLCHAIN ?= $(REPOSITORY)/toolchains/agondev
 PYTHON ?= $(REPOSITORY)/.venv/bin/python
+PYTHON_ENV ?= $(abspath $(dir $(PYTHON))/..)
+PROVENANCE_TOOL := $(abspath ../tools/record_target_step.py)
+PROVENANCE_DIR ?=
+PROVENANCE_DIR_ABS := $(if $(strip $(PROVENANCE_DIR)),$(abspath $(PROVENANCE_DIR)))
 HOST_CC ?= cc
 C_OBJECT_RELATIVE_EXTRA ?=
 ASM_SOURCES_EXTRA ?=
@@ -45,7 +49,21 @@ EZ80_FLAGS := -target ez80-none-elf -march=ez80 \
 	-mllvm -z80-gas-style -mllvm -z80-print-zero-offset \
 	-std=gnu17 -Wall -Wextra -Oz -ffreestanding -fno-builtin \
 	-fno-threadsafe-statics -Wa,-march=ez80+full \
+	-fno-integrated-as -B$(TOOLCHAIN)/bin \
 	-nostdinc -isystem $(TOOLCHAIN)/include -iquote$(NANOPRINTF_INCLUDE)
+TOOLCHAIN_INPUTS := $(shell find $(TOOLCHAIN)/include -type f -print | sort)
+
+ifneq ($(strip $(PROVENANCE_DIR_ABS)),)
+PROVENANCE_ROOT_ARGS := \
+	--root "BUILD_TOOL=$(REPOSITORY)" \
+	--root "BUILD=$(abspath ..)" \
+	--root "PREPARED=$(abspath $(ASSEMBLY_SOURCE))" \
+	--root "TOOLCHAIN=$(abspath $(TOOLCHAIN))" \
+	--root "PYTHON_ENV=$(abspath $(PYTHON_ENV))" \
+	--root "PROVENANCE=$(PROVENANCE_DIR_ABS)"
+RUNTIME_C_INPUT_ARGS := $(foreach input,$(NANOPRINTF_INCLUDE)/nanoprintf.h $(TOOLCHAIN_INPUTS),\
+	--input "$(input)")
+endif
 
 .DEFAULT_GOAL := verify
 
@@ -59,11 +77,35 @@ i48-equivalence: formatter
 
 $(BUILD)/firmware_printf.o: formatter/firmware_printf.c $(NANOPRINTF_INCLUDE)/nanoprintf.h
 	@mkdir -p $(BUILD)
-	$(EZ80_CC) $(EZ80_FLAGS) -c $< -o $@
+	if test -n "$(PROVENANCE_DIR_ABS)"; then \
+		$(PYTHON) -B $(PROVENANCE_TOOL) \
+			--kind c-compile \
+			--record "$(PROVENANCE_DIR_ABS)/compile/runtime/firmware_printf.json" \
+			--cwd "$(CURDIR)" $(PROVENANCE_ROOT_ARGS) \
+			--source "$<" $(RUNTIME_C_INPUT_ARGS) \
+			--nested-executable "$(EZ80_AS)" \
+			--driver-selected-executable "$(EZ80_AS)" \
+			--output "$@" --depfile "$(BUILD)/firmware_printf.d" -- \
+			$(EZ80_CC) $(EZ80_FLAGS) -MD -MF "$(BUILD)/firmware_printf.d" \
+			-c "$<" -o "$@"; \
+	else \
+		$(EZ80_CC) $(EZ80_FLAGS) -c $< -o $@; \
+	fi
 
 $(BUILD)/i48_required.o: helpers/i48_required.asm
 	@mkdir -p $(BUILD)
-	$(EZ80_AS) -march=ez80+full $< -o $@
+	if test -n "$(PROVENANCE_DIR_ABS)"; then \
+		$(PYTHON) -B $(PROVENANCE_TOOL) \
+			--kind direct-assembly \
+			--record "$(PROVENANCE_DIR_ABS)/assemble/runtime/i48_required.json" \
+			--cwd "$(CURDIR)" $(PROVENANCE_ROOT_ARGS) \
+			--source "$<" \
+			--output "$@" --depfile "$(BUILD)/i48_required.d" -- \
+			$(EZ80_AS) --MD "$(BUILD)/i48_required.d" \
+			-march=ez80+full "$<" -o "$@"; \
+	else \
+		$(EZ80_AS) -march=ez80+full $< -o $@; \
+	fi
 
 $(BUILD)/host_golden: formatter/host_golden.c formatter/firmware_printf.c \
 	$(NANOPRINTF_INCLUDE)/nanoprintf.h

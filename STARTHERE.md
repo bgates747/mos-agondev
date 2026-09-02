@@ -181,6 +181,51 @@ If Fab is installed and profiled, run the complete configured-input gate with:
 make verify
 ```
 
+### Optional actual-step provenance
+
+Supply a new path, or an existing empty real directory, to capture one fresh
+target-build session:
+
+```bash
+make firmware-check PROVENANCE_DIR=/absolute/path/to/new-evidence-directory
+```
+
+The repository-root target refuses a nonempty or symlink-aliased provenance
+directory before cleaning build outputs. In provenance mode every target C
+compile, wrapped or direct target assembly, and the final firmware link refuses
+stale outputs and records the actual argv and working directory using stable
+`BUILD_TOOL`, `BUILD`, `PREPARED`, `TOOLCHAIN`, `PYTHON_ENV`, and
+`PROVENANCE` placeholders. `PYTHON_ENV` separates the ignored virtual
+environment and its interpreter symlink from the tracked build-tool root.
+Each record binds the recorder; executable and declared nested-tool hashes and
+version output; explicit external-assembler selection flags and a sanitized
+Clang driver probe that proves the exact assembler selected for every object
+compile; a deterministic sanitized child
+environment; response files; source, depfile-derived inputs, and before/after
+input stability; and output digests. The final-link record additionally
+preserves the unique ordered input list, binds each declared direct producer
+record to the exact input bytes it produced, and hashes the ELF, dependency
+file, map, and captured linker trace. The generic recorder does not interpret
+that trace or require every ordered input to have a direct producer; the owning
+product gate selects the required producer chains and proves contribution from
+the link map, symbols, and disassembly. Failed post-command validation removes
+the untrusted step outputs so a clean retry is possible.
+
+Response-file support is deliberately one level deep. An argv-level `@file`
+must be declared and is hashed, but any `@` byte inside it fails before the
+target command runs because Clang/GNU nested-response tokenization is not yet
+part of the generic evidence schema.
+
+These JSON files are raw build-step evidence, not a release attestation or a
+sandbox. Product policy must still authenticate the maintained source,
+preparation envelope, selected profile, expected source/object inventory, and
+qualification result. The runtime archive construction and ELF-to-BIN/HEX
+objcopy steps are not currently recorded as actual steps; the final-link record
+does hash the exact runtime archive consumed and `verify_firmware.py` continues
+to check the derived binary. Use a new evidence directory for every invocation
+and preserve a reviewed directory only when its owning product process calls
+for it.
+
 ## 5. Normal development cycle
 
 1. Edit the ZDS-oriented source in the writable checkout selected by
@@ -253,6 +298,14 @@ the product source repository. Generic build machinery consumes it but must
 not duplicate or infer product policy.
 `CPPFLAGS_EXTRA` is an explicit product-profile input; do not use it to hide a
 generic compiler, header, or source-compatibility workaround.
+When a definition is consumed by only one selected translation unit, set
+`C_SOURCE_CPPFLAGS_RELATIVE` to that unit's relative `.c` path and put the
+definition in `C_SOURCE_CPPFLAGS_EXTRA`. The generic build rejects an empty,
+multiple, pattern-bearing, or unselected source name and applies those flags
+only to that literal unit's object and inspection-assembly targets. In
+particular, `%` is forbidden because GNU Make would reinterpret it as a target
+pattern. Keep `CPPFLAGS_EXTRA` for definitions that genuinely affect every
+selected C translation unit.
 
 AgonDev correctly models the eZ80 ABI's 24-bit `unsigned int`. Assignment to a
 32-bit destination does not widen an arithmetic expression that has already

@@ -34,6 +34,8 @@ class SourceProfileTests(unittest.TestCase):
             "ASM_SOURCES_EXTRA",
             "ASM_OBJECT_RELATIVE_EXTRA",
             "CPPFLAGS_EXTRA",
+            "C_SOURCE_CPPFLAGS_RELATIVE",
+            "C_SOURCE_CPPFLAGS_EXTRA",
             "PARITY_EXPECTED_COMMANDS",
             "FIRMWARE_LINK_CHECKS",
         ):
@@ -42,6 +44,7 @@ class SourceProfileTests(unittest.TestCase):
         self.assertIn("$(ASM_SOURCES)", port_make)
         self.assertIn("$(ASM_OBJECT_RELATIVE)", port_make)
         self.assertIn("$(CPPFLAGS_EXTRA)", port_make)
+        self.assertIn("$(C_SOURCE_CPPFLAGS_EXTRA)", port_make)
         self.assertIn("$(C_OBJECT_RELATIVE_EXTRA)", runtime_make)
         self.assertIn('ASSEMBLY_SOURCE="$(MOS_WORKTREE)"', root_make)
         self.assertIn('ASM_SOURCES_EXTRA="$(ASM_SOURCES_EXTRA)"', root_make)
@@ -73,6 +76,7 @@ class SourceProfileTests(unittest.TestCase):
         self.assertIn("--c-object", runtime_make)
         self.assertIn("extra_c_objects", runtime_audit)
         self.assertIn("`CPPFLAGS_EXTRA`", start_here)
+        self.assertIn("`C_SOURCE_CPPFLAGS_RELATIVE`", start_here)
         generic_build = root_make + port_make + runtime_make + assembly_profile
         self.assertNotIn("src/emos.c", generic_build)
         self.assertNotIn("emos_parallel", generic_build + assembly_validator)
@@ -123,6 +127,72 @@ class SourceProfileTests(unittest.TestCase):
         )
         self.assertNotEqual(completed.returncode, 0)
         self.assertIn("duplicate configured assembly source", completed.stderr)
+
+    def test_scoped_cppflags_reach_only_the_selected_c_source(self) -> None:
+        port = ROOT / "projects" / "mos-port"
+
+        def dry_run(target: str) -> str:
+            completed = subprocess.run(
+                [
+                    "make",
+                    "--no-print-directory",
+                    "-Bn",
+                    "-C",
+                    str(port),
+                    "C_SOURCE_CPPFLAGS_RELATIVE=main.c",
+                    "C_SOURCE_CPPFLAGS_EXTRA=-DROLE_ONLY=1",
+                    target,
+                ],
+                cwd=ROOT,
+                check=True,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            return completed.stdout
+
+        self.assertIn("-DROLE_ONLY=1", dry_run("obj/main.o"))
+        self.assertNotIn("-DROLE_ONLY=1", dry_run("obj/src/clock.o"))
+
+        rejected = subprocess.run(
+            [
+                "make",
+                "--no-print-directory",
+                "-n",
+                "-C",
+                str(port),
+                "C_SOURCE_CPPFLAGS_RELATIVE=src/not-selected.c",
+                "C_SOURCE_CPPFLAGS_EXTRA=-DROLE_ONLY=1",
+                "obj/main.o",
+            ],
+            cwd=ROOT,
+            check=False,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        self.assertNotEqual(rejected.returncode, 0)
+        self.assertIn("is not a selected C source", rejected.stderr)
+
+        pattern_rejected = subprocess.run(
+            [
+                "make",
+                "--no-print-directory",
+                "-n",
+                "-C",
+                str(port),
+                "C_SOURCE_CPPFLAGS_RELATIVE=%.c",
+                "C_SOURCE_CPPFLAGS_EXTRA=-DROLE_ONLY=1",
+                "obj/main.o",
+            ],
+            cwd=ROOT,
+            check=False,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        self.assertNotEqual(pattern_rejected.returncode, 0)
+        self.assertIn("must be a literal selected C source", pattern_rejected.stderr)
 
 
 if __name__ == "__main__":

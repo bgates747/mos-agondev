@@ -1,4 +1,5 @@
 PYTHON := .venv/bin/python
+PYTHON_ENV ?= $(abspath .venv)
 TOOLCHAIN := $(abspath toolchains/agondev)
 MOS_WORKTREE := $(abspath projects/mos-port/worktree)
 MOS_MAINTAINED_SOURCE ?= $(abspath upstream/agon-mos)
@@ -8,6 +9,8 @@ FAB_ROOT ?= $(abspath fab-agon-emulator)
 AGON_DOCS_ROOT ?= $(abspath agon-docs)
 FAB_ROOT_ABS := $(abspath $(FAB_ROOT))
 SOURCE_PROFILE ?=
+PROVENANCE_DIR ?=
+PROVENANCE_DIR_ABS := $(if $(strip $(PROVENANCE_DIR)),$(abspath $(PROVENANCE_DIR)))
 
 ifneq ($(strip $(SOURCE_PROFILE)),)
 include $(SOURCE_PROFILE)
@@ -18,6 +21,8 @@ C_OBJECT_RELATIVE_EXTRA ?=
 ASM_SOURCES_EXTRA ?=
 ASM_OBJECT_RELATIVE_EXTRA ?=
 CPPFLAGS_EXTRA ?=
+C_SOURCE_CPPFLAGS_RELATIVE ?=
+C_SOURCE_CPPFLAGS_EXTRA ?=
 PARITY_EXPECTED_COMMANDS ?=
 PARITY_EXPECTED_COMMAND_ARGS := $(foreach command,$(PARITY_EXPECTED_COMMANDS),--expected-command $(command))
 FIRMWARE_LINK_CHECKS ?=
@@ -30,7 +35,8 @@ include projects/mos-port/assembly-profile.mk
 	check-environment toolchain-probe c-probe probe-output-check emulator-check \
 	c-compat-check asm-probe linker-check runtime-check firmware-check firmware-boot-check \
 	firmware-parity-check vdp-regression-check vdp-baseline-check contract-check run-custom-emulator \
-	profile-linked-check binary-reference binary-compare binary-compare-record verify baseline-check clean
+	profile-linked-check binary-reference binary-compare binary-compare-record verify baseline-check clean \
+	provenance-start
 
 .NOTPARALLEL: verify baseline-check firmware-check
 
@@ -55,6 +61,7 @@ help:
 	@echo "binary-reference   fetch and hash-check the official release artifacts"
 	@echo "binary-compare     automate ZDS-release/AgonDev image comparison"
 	@echo "binary-compare-record replace reviewed evidence after inspecting comparison"
+	@echo "PROVENANCE_DIR=PATH records a fresh fail-closed target build session"
 	@echo "run-custom-emulator launch the AgonDev-built MOS with stock Platform VDP"
 	@echo "audit             print the frozen research source audit as JSON"
 	@echo "verify            run portable checks for the configured inputs"
@@ -77,6 +84,12 @@ worktree-check:
 		--upstream "$(MOS_MAINTAINED_SOURCE)" \
 		--destination "$(MOS_WORKTREE)" --check
 
+provenance-start:
+	@if test -n "$(PROVENANCE_DIR_ABS)"; then \
+		$(PYTHON) -B projects/mos-port/tools/record_target_step.py \
+			--initialize "$(PROVENANCE_DIR_ABS)"; \
+	fi
+
 test:
 	$(PYTHON) -m unittest discover -s tests -v
 
@@ -96,24 +109,33 @@ toolchain-probe:
 	$(MAKE) -C projects/toolchain-probe TOOLCHAIN=$(TOOLCHAIN) clean
 	$(MAKE) -C projects/toolchain-probe TOOLCHAIN=$(TOOLCHAIN) all verify
 
-c-probe:
+c-probe: provenance-start
 	$(MAKE) -C projects/mos-port TOOLCHAIN=$(TOOLCHAIN) \
 		UPSTREAM=$(MOS_WORKTREE) C_SOURCES_EXTRA="$(C_SOURCES_EXTRA)" \
-		CPPFLAGS_EXTRA="$(CPPFLAGS_EXTRA)" clean
+		CPPFLAGS_EXTRA="$(CPPFLAGS_EXTRA)" \
+		C_SOURCE_CPPFLAGS_RELATIVE="$(C_SOURCE_CPPFLAGS_RELATIVE)" \
+		C_SOURCE_CPPFLAGS_EXTRA="$(C_SOURCE_CPPFLAGS_EXTRA)" clean
 	$(MAKE) -C projects/mos-port TOOLCHAIN=$(TOOLCHAIN) \
 		UPSTREAM=$(MOS_WORKTREE) C_SOURCES_EXTRA="$(C_SOURCES_EXTRA)" \
-		CPPFLAGS_EXTRA="$(CPPFLAGS_EXTRA)" c-objects report
+		CPPFLAGS_EXTRA="$(CPPFLAGS_EXTRA)" \
+		C_SOURCE_CPPFLAGS_RELATIVE="$(C_SOURCE_CPPFLAGS_RELATIVE)" \
+		C_SOURCE_CPPFLAGS_EXTRA="$(C_SOURCE_CPPFLAGS_EXTRA)" \
+		PROVENANCE_DIR="$(PROVENANCE_DIR_ABS)" c-objects report
 
 c-compat-check: c-probe
 	$(MAKE) -C projects/mos-port TOOLCHAIN=$(TOOLCHAIN) \
 		UPSTREAM=$(MOS_WORKTREE) C_SOURCES_EXTRA="$(C_SOURCES_EXTRA)" \
-		CPPFLAGS_EXTRA="$(CPPFLAGS_EXTRA)" c-compat
+		CPPFLAGS_EXTRA="$(CPPFLAGS_EXTRA)" \
+		C_SOURCE_CPPFLAGS_RELATIVE="$(C_SOURCE_CPPFLAGS_RELATIVE)" \
+		C_SOURCE_CPPFLAGS_EXTRA="$(C_SOURCE_CPPFLAGS_EXTRA)" \
+		PROVENANCE_DIR="$(PROVENANCE_DIR_ABS)" c-compat
 
-asm-probe:
+asm-probe: provenance-start
 	$(MAKE) -C projects/mos-port TOOLCHAIN=$(TOOLCHAIN) \
 		UPSTREAM=$(MOS_WORKTREE) \
 		ASM_SOURCES_EXTRA="$(ASM_SOURCES_EXTRA)" \
-		ASM_OBJECT_RELATIVE_EXTRA="$(ASM_OBJECT_RELATIVE_EXTRA)" asm-objects
+		ASM_OBJECT_RELATIVE_EXTRA="$(ASM_OBJECT_RELATIVE_EXTRA)" \
+		PROVENANCE_DIR="$(PROVENANCE_DIR_ABS)" asm-objects
 
 linker-check:
 	$(PYTHON) -B projects/mos-port/ld/verify_linker.py
@@ -121,19 +143,29 @@ linker-check:
 runtime-check: c-probe
 	# c-probe begins from a clean object tree; rebuild the exact assembly
 	# composition before deriving provider authority from linked objects.
-	$(MAKE) asm-probe
+	$(MAKE) -C projects/mos-port TOOLCHAIN=$(TOOLCHAIN) \
+		UPSTREAM=$(MOS_WORKTREE) \
+		ASM_SOURCES_EXTRA="$(ASM_SOURCES_EXTRA)" \
+		ASM_OBJECT_RELATIVE_EXTRA="$(ASM_OBJECT_RELATIVE_EXTRA)" \
+		PROVENANCE_DIR="$(PROVENANCE_DIR_ABS)" asm-objects
 	$(MAKE) -C projects/mos-port/runtime \
+		TOOLCHAIN="$(TOOLCHAIN)" PYTHON="$(abspath $(PYTHON))" \
+		PYTHON_ENV="$(PYTHON_ENV)" \
 		C_OBJECT_RELATIVE_EXTRA="$(C_OBJECT_RELATIVE_EXTRA)" \
 		ASM_SOURCES_EXTRA="$(ASM_SOURCES_EXTRA)" \
 		ASM_OBJECT_RELATIVE_EXTRA="$(ASM_OBJECT_RELATIVE_EXTRA)" \
-		ASSEMBLY_SOURCE="$(MOS_WORKTREE)" verify
+		ASSEMBLY_SOURCE="$(MOS_WORKTREE)" \
+		PROVENANCE_DIR="$(PROVENANCE_DIR_ABS)" verify
 
-firmware-check: worktree-check runtime-check linker-check
+firmware-check: provenance-start worktree-check runtime-check linker-check
 	$(MAKE) -C projects/mos-port TOOLCHAIN=$(TOOLCHAIN) \
 		UPSTREAM=$(MOS_WORKTREE) C_SOURCES_EXTRA="$(C_SOURCES_EXTRA)" \
 		ASM_SOURCES_EXTRA="$(ASM_SOURCES_EXTRA)" \
 		ASM_OBJECT_RELATIVE_EXTRA="$(ASM_OBJECT_RELATIVE_EXTRA)" \
-		CPPFLAGS_EXTRA="$(CPPFLAGS_EXTRA)" firmware
+		CPPFLAGS_EXTRA="$(CPPFLAGS_EXTRA)" \
+		C_SOURCE_CPPFLAGS_RELATIVE="$(C_SOURCE_CPPFLAGS_RELATIVE)" \
+		C_SOURCE_CPPFLAGS_EXTRA="$(C_SOURCE_CPPFLAGS_EXTRA)" \
+		PROVENANCE_DIR="$(PROVENANCE_DIR_ABS)" firmware
 	$(MAKE) profile-linked-check
 
 profile-linked-check:
