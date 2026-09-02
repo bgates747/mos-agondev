@@ -11,8 +11,17 @@ import subprocess
 import sys
 from collections import defaultdict, deque
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Iterable
+
+PROFILE_TOOLS = Path(__file__).resolve().parents[1] / "tools"
+sys.path.insert(0, str(PROFILE_TOOLS))
+from profile_assembly import (  # noqa: E402
+    AssemblyProfileError,
+    resolve_linked_objects,
+    select_linked_sources,
+    validate_assembly_composition,
+)
 
 
 @dataclass(frozen=True)
@@ -79,19 +88,6 @@ def archive_member(owner: str) -> str:
     return match.group(1)
 
 
-def assembly_exports(source_root: Path) -> set[str]:
-    exports: set[str] = set()
-    for source in sorted(source_root.rglob("*.asm")):
-        for raw_line in source.read_text(encoding="utf-8", errors="strict").splitlines():
-            code = raw_line.split(";", 1)[0]
-            match = re.search(r"\bXDEF\b(.*)$", code, flags=re.IGNORECASE)
-            if not match:
-                continue
-            for name in re.findall(r"[A-Za-z_.][A-Za-z0-9_.$]*", match.group(1)):
-                exports.add(name)
-    return exports
-
-
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as stream:
@@ -142,6 +138,9 @@ def audit(
     runtime_archive: Path,
     policy: dict[str, object],
     extra_c_objects: Iterable[str] = (),
+    assembly_sources: Iterable[str] = (),
+    assembly_objects: Iterable[str] = (),
+    profile_assembly_sources: Iterable[str] = (),
 ) -> tuple[dict[str, object], list[str]]:
     errors: list[str] = []
     try:
@@ -153,6 +152,40 @@ def audit(
     missing_objects = [str(path) for path in object_paths if not path.is_file()]
     if missing_objects:
         return {}, [f"configured C objects are missing: {missing_objects}"]
+    assembly_source_names = list(assembly_sources)
+    assembly_object_names = list(assembly_objects)
+    profile_source_names = list(profile_assembly_sources)
+    try:
+        linked_assembly = validate_assembly_composition(
+            assembly_root, assembly_source_names, assembly_object_names
+        )
+        select_linked_sources(linked_assembly, profile_source_names)
+        linked_assembly_objects = resolve_linked_objects(
+            objects_root / "asm", assembly_object_names
+        )
+    except (AssemblyProfileError, FileNotFoundError) as error:
+        return {}, [str(error)]
+    assembly_object_root = (objects_root / "asm").resolve(strict=True)
+    assembly_symbols_by_object = {
+        path.relative_to(assembly_object_root).as_posix(): run_nm(nm, path)
+        for path in linked_assembly_objects
+    }
+    assembly = {
+        symbol.name
+        for symbols in assembly_symbols_by_object.values()
+        for symbol in symbols
+        if symbol.kind.upper() != "U"
+    }
+    profile_object_names = {
+        PurePosixPath(name).with_suffix(".o").as_posix()
+        for name in profile_source_names
+    }
+    profile_assembly_exports = {
+        symbol.name
+        for name in profile_object_names
+        for symbol in assembly_symbols_by_object[name]
+        if symbol.kind.upper() != "U"
+    }
 
     object_symbols = [symbol for path in object_paths for symbol in run_nm(nm, path)]
     object_definitions = {s.name for s in object_symbols if s.kind.upper() != "U"}
@@ -206,7 +239,6 @@ def audit(
             if member not in symbol_providers[symbol.name]:
                 symbol_providers[symbol.name].append(member)
 
-    assembly = assembly_exports(assembly_root)
     linker = set(policy["linker_symbols"])
     base_definitions = object_definitions | local_definitions | assembly | linker
 
@@ -296,10 +328,14 @@ def audit(
             "link probe retains unexpected relocated undefined symbols: "
             f"{sorted(unexpected_linked)}"
         )
-    if metadata_only != expected_metadata:
+    unexpected_metadata = metadata_only - expected_metadata - profile_assembly_exports
+    missing_metadata = expected_metadata - metadata_only
+    if unexpected_metadata or missing_metadata:
         errors.append(
             "link probe metadata-only undefined symbols differ: "
-            f"expected {sorted(expected_metadata)}, got {sorted(metadata_only)}"
+            f"required {sorted(expected_metadata)}, "
+            f"profile assembly {sorted(profile_assembly_exports)}, "
+            f"got {sorted(metadata_only)}"
         )
     expected_restricted_members = [path.name for path in local_objects] + [
         member for members in allowed_categories.values() for member in members
@@ -323,6 +359,10 @@ def audit(
         "nanoprintf": str(nanoprintf),
         "nanoprintf_sha256": actual_nanoprintf_hash,
         "c_object_count": len(object_paths),
+        "linked_assembly_sources": assembly_source_names,
+        "linked_assembly_objects": assembly_object_names,
+        "profile_assembly_sources": profile_source_names,
+        "profile_assembly_exports": sorted(profile_assembly_exports),
         "c_external_symbol_count": len(object_undefined - object_definitions),
         "local_runtime_undefined": sorted(local_undefined),
         "link_probe_relocated_undefined": sorted(linked_undefined),
@@ -404,6 +444,24 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         default=repository / "projects/mos-port/worktree",
     )
     parser.add_argument(
+        "--assembly-source",
+        action="append",
+        default=[],
+        help="declare one assembly source in the exact final link composition",
+    )
+    parser.add_argument(
+        "--assembly-object",
+        action="append",
+        default=[],
+        help="declare its exact target-relative object path",
+    )
+    parser.add_argument(
+        "--profile-assembly-source",
+        action="append",
+        default=[],
+        help="append one reviewed product-profile assembly source path",
+    )
+    parser.add_argument(
         "--local-object",
         action="append",
         type=Path,
@@ -448,6 +506,9 @@ def main(argv: list[str] | None = None) -> int:
         runtime_archive=args.runtime_archive.resolve(),
         policy=policy,
         extra_c_objects=args.c_object,
+        assembly_sources=args.assembly_source,
+        assembly_objects=args.assembly_object,
+        profile_assembly_sources=args.profile_assembly_source,
     )
     if args.json:
         print(json.dumps({"errors": errors, **report}, indent=2, sort_keys=True))

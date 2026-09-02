@@ -101,7 +101,8 @@ class PortablePathTests(unittest.TestCase):
             stderr=subprocess.PIPE,
         )
         self.assertEqual(root_dry_run.returncode, 0, root_dry_run.stderr)
-        self.assertIn("prepare_mos_worktree.py --check", root_dry_run.stdout)
+        self.assertIn("prepare_mos_worktree.py", root_dry_run.stdout)
+        self.assertIn("--check", root_dry_run.stdout)
 
         direct = subprocess.run(
             [
@@ -123,6 +124,31 @@ class PortablePathTests(unittest.TestCase):
         provenance = direct.stdout.index("zds2gas.py provenance")
         compilation = direct.stdout.index("ez80-none-elf-clang")
         self.assertLess(provenance, compilation)
+
+    def test_selected_maintained_source_and_worktree_reach_preflight(self) -> None:
+        source = ROOT / "selected-maintained-source"
+        worktree = ROOT / "projects/mos-port/selected-prepared-worktree"
+        result = subprocess.run(
+            [
+                "make",
+                "-n",
+                f"MOS_MAINTAINED_SOURCE={source}",
+                f"MOS_WORKTREE={worktree}",
+                "worktree-check",
+            ],
+            cwd=ROOT,
+            check=False,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(f'--upstream "{source}"', result.stdout)
+        self.assertIn(f'--destination "{worktree}" --check', result.stdout)
+        self.assertNotIn(
+            f'--destination "{ROOT / "projects/mos-port/worktree"}"',
+            result.stdout,
+        )
 
 
 if __name__ == "__main__":

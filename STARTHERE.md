@@ -167,9 +167,13 @@ runtime, and verifies the image.
 
 For a bounded product experiment that must not replace the current prepared
 tree, pass explicit `--upstream` and `--destination` paths to preparation and
-the same destination as `MOS_WORKTREE` to Make. Named `worktree-*` directories
-under `projects/mos-port` are ignored disposable outputs; record the maintained
-source identity and exact preparation command in the owning product task.
+the same source and destination as `MOS_MAINTAINED_SOURCE` and `MOS_WORKTREE`
+to every repository-root Make target. The root `worktree-check` validates that
+exact pair before compiling; it never substitutes the default stock source or
+prepared tree for a caller-selected product input. Named `worktree-*`
+directories under `projects/mos-port` are ignored disposable outputs; record
+the maintained source identity and exact preparation command in the owning
+product task.
 
 If Fab is installed and profiled, run the complete configured-input gate with:
 
@@ -225,9 +229,23 @@ Before starting another refresh, either restore or relocate an existing
   change.
 
 A maintained product may pass `SOURCE_PROFILE=PATH` to declare additional C
-translation units, corresponding runtime objects, product-specific
-preprocessor definitions through `CPPFLAGS_EXTRA`, and reviewed HELP-command
-additions. It may also list product-owned Python checkers in
+translation units and corresponding runtime objects through `C_SOURCES_EXTRA`
+and `C_OBJECT_RELATIVE_EXTRA`. It may append maintained ZDS assembly units and
+their target-object paths through `ASM_SOURCES_EXTRA` and
+`ASM_OBJECT_RELATIVE_EXTRA`; the two assembly lists must correspond exactly,
+and an empty profile preserves the upstream source and link order unchanged.
+Assembly composition validation accepts units only below `src/` or
+`src_startup/` and rejects absolute, parent-traversing, non-canonical,
+duplicate, missing, wrong-suffix, and symlink-escaping inputs before assembly.
+The runtime closure derives providers from the target symbol tables of that
+same exact, present, non-escaping linked object composition; merely placing or
+textually exporting a symbol from another assembly file in the prepared source
+tree grants it no provider authority. The runtime closure audit accepts a
+metadata-only assembly provider only when its target definition comes from the
+explicitly declared assembly-source/object suffix.
+The profile may also supply product-specific preprocessor definitions through
+`CPPFLAGS_EXTRA` and reviewed HELP-command additions. It may list
+product-owned Python checkers in
 `FIRMWARE_LINK_CHECKS`. The root `firmware-check` target invokes every listed
 checker against the prepared source and final ELF through a fixed
 `--source`, `--elf`, `--nm`, and `--objdump` interface. The profile is owned by

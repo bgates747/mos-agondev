@@ -25,6 +25,8 @@ CFLAGS := -target ez80-none-elf -march=ez80 \
 C_SOURCES_EXTRA ?=
 CPPFLAGS_EXTRA ?=
 
+include assembly-profile.mk
+
 C_SOURCES_BASE := \
 	main.c \
 	src/clock.c \
@@ -51,26 +53,9 @@ C_OBJECTS := $(addprefix obj/,$(C_SOURCES:.c=.o))
 C_ASSEMBLY := $(addprefix inspect/c/,$(C_SOURCES:.c=.s))
 C_HEADERS := $(shell find $(UPSTREAM) include -type f -name '*.h' -print | sort)
 
-ASM_SOURCES := \
-	src/crash.asm \
-	src/gpio.asm \
-	src/interrupts.asm \
-	src/keyboard.asm \
-	src/misc.asm \
-	src/mos_api.asm \
-	src/rtc.asm \
-	src/sd.asm \
-	src/serial.asm \
-	src/spi.asm \
-	src/vdp_protocol.asm \
-	src_startup/cstartup.asm \
-	src_startup/globals.asm \
-	src_startup/init_params_f92.asm \
-	src_startup/vectors16.asm
-
 ASM_INPUTS := $(shell find $(UPSTREAM)/src $(UPSTREAM)/src_startup \
 	-type f \( -name '*.asm' -o -name '*.inc' \) -print | sort)
-ASM_OBJECTS := $(addprefix obj/asm/,$(ASM_SOURCES:.asm=.o))
+ASM_OBJECTS := $(addprefix obj/asm/,$(ASM_OBJECT_RELATIVE))
 FIRMWARE_OBJECTS := $(ASM_OBJECTS) $(C_OBJECTS)
 RUNTIME_ARCHIVE := runtime/build/libmos_runtime.a
 RUNTIME_INPUTS := $(shell find runtime -type f \
@@ -83,9 +68,16 @@ FIRMWARE_HEX := bin/MOS.hex
 
 .DEFAULT_GOAL := firmware
 
-.PHONY: provenance-check c-objects c-assembly c-compat asm-sources asm-objects all-objects runtime firmware verify-firmware clean report
+.PHONY: provenance-check profile-assembly-check c-objects c-assembly c-compat \
+	asm-sources asm-objects all-objects runtime firmware verify-firmware clean report
 provenance-check:
 	$(PYTHON) -B $(ZDS2GAS) provenance $(UPSTREAM)
+
+profile-assembly-check:
+	$(PYTHON) -B tools/profile_assembly.py --source-root "$(UPSTREAM)" \
+		--build-root "$(CURDIR)" --object-root obj/asm \
+		$(foreach source,$(ASM_SOURCES_DECLARED),--source=$(source)) \
+		$(foreach object,$(ASM_OBJECT_RELATIVE_DECLARED),--object=$(object))
 
 c-objects: provenance-check $(C_OBJECTS)
 
@@ -124,7 +116,8 @@ inspect/c/src_fatfs/ff.s: CFLAGS += -Os
 
 # Validation must finish before any prepared-source object recipe can run,
 # including under a direct parallel sub-make.
-$(C_OBJECTS) $(C_ASSEMBLY) $(ASM_OBJECTS) $(GENERATED)/manifest.json: | provenance-check
+$(C_OBJECTS) $(C_ASSEMBLY): | provenance-check
+$(ASM_OBJECTS) $(GENERATED)/manifest.json: | provenance-check profile-assembly-check
 
 $(GENERATED)/manifest.json: $(ZDS2GAS) $(PREPARATION_METADATA) $(ASM_INPUTS)
 	$(PYTHON) -B $(ZDS2GAS) tree $(UPSTREAM) $(GENERATED)

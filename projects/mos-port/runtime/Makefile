@@ -4,7 +4,11 @@ TOOLCHAIN ?= $(REPOSITORY)/toolchains/agondev
 PYTHON ?= $(REPOSITORY)/.venv/bin/python
 HOST_CC ?= cc
 C_OBJECT_RELATIVE_EXTRA ?=
+ASM_SOURCES_EXTRA ?=
+ASM_OBJECT_RELATIVE_EXTRA ?=
 ASSEMBLY_SOURCE ?= $(REPOSITORY)/projects/mos-port/worktree
+
+include ../assembly-profile.mk
 
 EZ80_CC := $(TOOLCHAIN)/bin/ez80-none-elf-clang
 EZ80_AS := $(TOOLCHAIN)/bin/ez80-none-elf-as
@@ -33,6 +37,9 @@ C_OBJECT_RELATIVE_BASE := \
 C_OBJECT_RELATIVE := $(sort $(C_OBJECT_RELATIVE_BASE) $(C_OBJECT_RELATIVE_EXTRA))
 C_OBJECTS := $(addprefix $(C_OBJECT_ROOT)/,$(C_OBJECT_RELATIVE))
 C_OBJECT_EXTRA_ARGS := $(foreach object,$(C_OBJECT_RELATIVE_EXTRA),--c-object $(object))
+ASM_SOURCE_ARGS := $(foreach source,$(ASM_SOURCES_DECLARED),--assembly-source $(source))
+ASM_OBJECT_ARGS := $(foreach object,$(ASM_OBJECT_RELATIVE_DECLARED),--assembly-object $(object))
+ASM_SOURCE_EXTRA_ARGS := $(foreach source,$(ASM_SOURCES_EXTRA),--profile-assembly-source $(source))
 
 EZ80_FLAGS := -target ez80-none-elf -march=ez80 \
 	-mllvm -z80-gas-style -mllvm -z80-print-zero-offset \
@@ -76,7 +83,8 @@ link-probe: runtime-archive
 
 audit: link-probe
 	$(PYTHON) audit_runtime.py --assembly "$(ASSEMBLY_SOURCE)" \
-		$(C_OBJECT_EXTRA_ARGS)
+		$(C_OBJECT_EXTRA_ARGS) $(ASM_SOURCE_ARGS) $(ASM_OBJECT_ARGS) \
+		$(ASM_SOURCE_EXTRA_ARGS)
 
 formats:
 	$(PYTHON) scan_formats.py

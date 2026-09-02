@@ -1,6 +1,7 @@
 PYTHON := .venv/bin/python
 TOOLCHAIN := $(abspath toolchains/agondev)
 MOS_WORKTREE := $(abspath projects/mos-port/worktree)
+MOS_MAINTAINED_SOURCE ?= $(abspath upstream/agon-mos)
 AGONDEV_SOURCE ?= $(abspath agondev)
 MOS_SOURCE ?= $(abspath agon-mos)
 FAB_ROOT ?= $(abspath fab-agon-emulator)
@@ -14,10 +15,14 @@ endif
 
 C_SOURCES_EXTRA ?=
 C_OBJECT_RELATIVE_EXTRA ?=
+ASM_SOURCES_EXTRA ?=
+ASM_OBJECT_RELATIVE_EXTRA ?=
 CPPFLAGS_EXTRA ?=
 PARITY_EXPECTED_COMMANDS ?=
 PARITY_EXPECTED_COMMAND_ARGS := $(foreach command,$(PARITY_EXPECTED_COMMANDS),--expected-command $(command))
 FIRMWARE_LINK_CHECKS ?=
+
+include projects/mos-port/assembly-profile.mk
 
 .DEFAULT_GOAL := help
 
@@ -63,10 +68,14 @@ setup-emulator:
 	$(PYTHON) scripts/setup_emulator.py --fab-root "$(FAB_ROOT_ABS)"
 
 prepare-mos:
-	$(PYTHON) scripts/prepare_mos_worktree.py
+	$(PYTHON) scripts/prepare_mos_worktree.py \
+		--upstream "$(MOS_MAINTAINED_SOURCE)" \
+		--destination "$(MOS_WORKTREE)"
 
 worktree-check:
-	$(PYTHON) -B scripts/prepare_mos_worktree.py --check
+	$(PYTHON) -B scripts/prepare_mos_worktree.py \
+		--upstream "$(MOS_MAINTAINED_SOURCE)" \
+		--destination "$(MOS_WORKTREE)" --check
 
 test:
 	$(PYTHON) -m unittest discover -s tests -v
@@ -102,19 +111,28 @@ c-compat-check: c-probe
 
 asm-probe:
 	$(MAKE) -C projects/mos-port TOOLCHAIN=$(TOOLCHAIN) \
-		UPSTREAM=$(MOS_WORKTREE) asm-objects
+		UPSTREAM=$(MOS_WORKTREE) \
+		ASM_SOURCES_EXTRA="$(ASM_SOURCES_EXTRA)" \
+		ASM_OBJECT_RELATIVE_EXTRA="$(ASM_OBJECT_RELATIVE_EXTRA)" asm-objects
 
 linker-check:
 	$(PYTHON) -B projects/mos-port/ld/verify_linker.py
 
 runtime-check: c-probe
+	# c-probe begins from a clean object tree; rebuild the exact assembly
+	# composition before deriving provider authority from linked objects.
+	$(MAKE) asm-probe
 	$(MAKE) -C projects/mos-port/runtime \
 		C_OBJECT_RELATIVE_EXTRA="$(C_OBJECT_RELATIVE_EXTRA)" \
+		ASM_SOURCES_EXTRA="$(ASM_SOURCES_EXTRA)" \
+		ASM_OBJECT_RELATIVE_EXTRA="$(ASM_OBJECT_RELATIVE_EXTRA)" \
 		ASSEMBLY_SOURCE="$(MOS_WORKTREE)" verify
 
-firmware-check: worktree-check asm-probe runtime-check linker-check
+firmware-check: worktree-check runtime-check linker-check
 	$(MAKE) -C projects/mos-port TOOLCHAIN=$(TOOLCHAIN) \
 		UPSTREAM=$(MOS_WORKTREE) C_SOURCES_EXTRA="$(C_SOURCES_EXTRA)" \
+		ASM_SOURCES_EXTRA="$(ASM_SOURCES_EXTRA)" \
+		ASM_OBJECT_RELATIVE_EXTRA="$(ASM_OBJECT_RELATIVE_EXTRA)" \
 		CPPFLAGS_EXTRA="$(CPPFLAGS_EXTRA)" firmware
 	$(MAKE) profile-linked-check
 
