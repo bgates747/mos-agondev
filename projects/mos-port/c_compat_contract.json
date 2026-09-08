@@ -57,7 +57,10 @@
     "UART1_FCTL": 210,
     "UART1_IER": 209,
     "UART1_LCTL": 211,
-    "UART1_MCTL": 212
+    "UART1_MCTL": 212,
+    "UART1_RBR": 208,
+    "UART1_THR": 208,
+    "UART1_LSR": 213
   },
   "source_headers": [
     "cdefs.h",
