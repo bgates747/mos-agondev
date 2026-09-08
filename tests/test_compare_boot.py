@@ -89,6 +89,27 @@ class CompareBootTests(unittest.TestCase):
         with self.assertRaisesRegex(compare_boot.ParityError, "FatFS"):
             compare_boot.compare(candidate, reference)
 
+    def test_boot_identity_is_exact_unique_and_immediately_after_banner(self) -> None:
+        banner = b"Agon Platform MOS Version 3.0.2 Arthur\n"
+        body = (b"/ *set PortTest a value with spaces\n"
+                b"/ *show PortTest\na value with spaces\n")
+        identity = "Custom identity: reviewed-build"
+        line = identity.encode() + b"\n"
+        reference = banner + body
+        with mock.patch.object(compare_boot, "REQUIRED_TRANSCRIPT_TOKENS", ()), \
+             mock.patch.object(compare_boot, "COMMANDS", b""):
+            compare_boot.compare(banner + line + body, reference,
+                                 expected_boot_line=identity)
+            for candidate in (reference, banner + line + line + body,
+                              reference + line, banner + b"Custom identity: other\n" + body):
+                with self.subTest(candidate=candidate), self.assertRaises(compare_boot.ParityError):
+                    compare_boot.compare(candidate, reference, expected_boot_line=identity)
+            with self.assertRaises(compare_boot.ParityError):
+                compare_boot.compare(banner + line + body, reference)
+            with self.assertRaises(compare_boot.ParityError):
+                compare_boot.compare(banner + line + body + b"unreviewed\n", reference,
+                                     expected_boot_line=identity)
+
     def test_rejects_matching_but_incomplete_transcripts(self) -> None:
         output = b"Agon Platform MOS Version 3.0.2 Arthur\n/ *\n"
         with self.assertRaisesRegex(compare_boot.ParityError, "lack required"):

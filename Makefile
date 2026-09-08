@@ -24,7 +24,9 @@ CPPFLAGS_EXTRA ?=
 C_SOURCE_CPPFLAGS_RELATIVE ?=
 C_SOURCE_CPPFLAGS_EXTRA ?=
 PARITY_EXPECTED_COMMANDS ?=
+PARITY_EXPECTED_BOOT_LINE ?=
 PARITY_EXPECTED_COMMAND_ARGS := $(foreach command,$(PARITY_EXPECTED_COMMANDS),--expected-command $(command))
+PARITY_EXPECTED_BOOT_ARGS := $(if $(PARITY_EXPECTED_BOOT_LINE),--expected-boot-line '$(PARITY_EXPECTED_BOOT_LINE)')
 FIRMWARE_LINK_CHECKS ?=
 
 include projects/mos-port/assembly-profile.mk
@@ -187,7 +189,7 @@ firmware-boot-check: firmware-check emulator-check
 
 firmware-parity-check: firmware-boot-check
 	$(PYTHON) -B projects/mos-port/compare_boot.py --fab-root "$(FAB_ROOT_ABS)" \
-		$(PARITY_EXPECTED_COMMAND_ARGS)
+		$(PARITY_EXPECTED_COMMAND_ARGS) $(PARITY_EXPECTED_BOOT_ARGS)
 
 vdp-regression-check: firmware-check
 	$(PYTHON) -B projects/mos-port/verify_vdp_regressions.py

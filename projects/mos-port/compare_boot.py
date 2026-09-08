@@ -193,9 +193,19 @@ def compare(
     reference: bytes,
     *,
     expected_command_additions: tuple[str, ...] = (),
+    expected_boot_line: str | None = None,
 ) -> None:
     candidate_lines = normalize(candidate)
     reference_lines = normalize(reference)
+    # A product profile may add one exact identity immediately after the MOS
+    # lineage banner. Require its position and uniqueness; never ignore a
+    # prefix or arbitrary candidate-only output.
+    if expected_boot_line is not None:
+        if (len(candidate_lines) < 2 or candidate_lines[1] != expected_boot_line
+                or candidate_lines.count(expected_boot_line) != 1
+                or expected_boot_line in reference_lines):
+            raise ParityError("candidate boot identity is missing, misplaced or duplicated")
+        candidate_lines.pop(1)
     help_marker = "List of commands:"
     if help_marker in candidate_lines or help_marker in reference_lines:
         candidate_lines = canonicalize_help_commands(
@@ -247,6 +257,8 @@ def main() -> int:
         default=[],
         help="reviewed candidate-only HELP command; may be repeated",
     )
+    parser.add_argument("--expected-boot-line",
+                        help="exact candidate-only line immediately after the MOS banner")
     args = parser.parse_args()
     try:
         cli = verify_boot.find_cli(args.fab_root.expanduser().resolve())
@@ -262,6 +274,7 @@ def main() -> int:
                 candidate,
                 reference,
                 expected_command_additions=tuple(args.expected_command),
+                expected_boot_line=args.expected_boot_line,
             )
     except (OSError, ParityError, verify_boot.BootError) as error:
         print(f"compare_boot.py: {error}", file=subprocess.sys.stderr)
