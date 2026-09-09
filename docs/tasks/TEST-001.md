@@ -1,6 +1,6 @@
 # TEST-001 — Isolated Fab UART1 test peer
 
-Status: complete; Author accepted graphical review and authorized source freeze.
+Status: Complete; runtime adaptation and output-identical host-library portability correction verified.
 
 Fab 1.2.3 (`fbb7d7ca887a06966ca8a62ed22272409a5ab640`) emulates UART1
 registers but omits its receive interrupt from `AgonMachine::do_interrupts`.
@@ -45,3 +45,23 @@ The Author subsequently accepted the graphical result and authorized its source
 freeze. The checked reference adaptation does not alter guest firmware.
 
 Recurring usage and limits are maintained in [UART peer emulator](../uart-peer-emulator.md).
+
+## Host-library portability correction
+
+The next consumer firmware qualification found that the helper assumed a
+home-relative host-library directory, violating the repository's existing
+portable-path check. No firmware or UART behavior failed. Keep that check
+unchanged: expose an optional `--library-dir PATH` instead, inheriting the
+caller environment when omitted. Record the selected directory only in the
+generated machine-local runtime manifest.
+
+1. [x] Pass the existing generic test suite with the portability guard intact.
+2. [x] Rebuild the isolated runtime with the prior host-library selection,
+   compare generated runtime source and execute the consuming paired fixture.
+3. [x] Verify that prior Author graphical evidence applies to the resulting
+   runtime before freezing the correction. Every generated source, Cargo lock
+   and both executable hashes match the previously reviewed runtime exactly.
+   The Author authorized freezing and continuing the consuming hardware-test
+   preparation. No new emulator behavior is introduced.
+
+All 134 generic tests pass with the portability guard unchanged. Rebuilding with the explicit prior library directory produces no changed runtime-file hashes. The generated manifest records the new helper hash and explicit directory; old manifests are preserved. The existing consuming graphical PASS therefore tests the exact resulting runtime executables.

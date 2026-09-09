@@ -2,7 +2,10 @@
 
 `scripts/prepare_uart_peer.py` builds an isolated Fab 1.2.3 source copy for
 controlled UART1 byte tests. Invoke it with `--help` for required reference,
-output and host-library arguments. It requires the exact reviewed reference
+and output arguments. Use `--library-dir PATH` for non-system host libraries;
+otherwise the caller's existing build environment is inherited. The helper
+does not infer a library location from the user's home directory.
+It requires the exact reviewed reference
 commit `fbb7d7ca887a06966ca8a62ed22272409a5ab640` and a new output directory.
 The reference checkout is read-only. The output manifest records adapter,
 adapted sources, resolved Cargo lock and executable hashes.

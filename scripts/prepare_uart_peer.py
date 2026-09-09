@@ -115,7 +115,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--fab-root', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--library-dir', type=Path,
+                        help='Optional directory for non-system host libraries; otherwise inherit the build environment')
     args = parser.parse_args()
+    libraries = args.library_dir.resolve(strict=True) if args.library_dir else None
+    if libraries is not None and not libraries.is_dir():
+        parser.error('--library-dir must name a directory')
     reference = args.fab_root.resolve(strict=True)
     root = args.output.absolute()
     if subprocess.check_output(['git', '-C', str(reference), 'rev-parse', 'HEAD'], text=True).strip() != REFERENCE:
@@ -126,9 +131,9 @@ def main():
         source.extractall(root, filter='data')
     adapt(root)
     env = os.environ.copy()
-    libraries = str(Path.home()/'.local/lib')
-    for name in ('LIBRARY_PATH', 'LD_LIBRARY_PATH'):
-        env[name] = libraries + os.pathsep + env.get(name, '')
+    if libraries is not None:
+        for name in ('LIBRARY_PATH', 'LD_LIBRARY_PATH'):
+            env[name] = str(libraries) + os.pathsep + env.get(name, '')
     with (root/'build.log').open('w') as log:
         # Fab's tagged lock needs Cargo's local metadata normalization. Resolve
         # offline and retain the exact resulting lock hash with this runtime.
@@ -142,6 +147,7 @@ def main():
              'target/release/agon-cli-emulator', 'target/release/fab-agon-emulator']
     (root/'runtime-inputs.json').write_text(json.dumps({
         'reference_commit': REFERENCE, 'adapter_sha256': digest(Path(__file__)),
+        'host_library_directory': str(libraries) if libraries else None,
         'files': {name: digest(root/name) for name in files},
         'scope': 'UART1 RX IRQ and ordered byte peer; constant CTS; no physical timing or RTS proof',
     }, indent=2)+'\n')
