@@ -7,6 +7,8 @@ the original feasibility narrative.
 - `docs/assembly-compatibility-strategy.md` defines the maintained ZDS-oriented
   language, strict translation behavior, diagnostics, and generated-source
   boundary.
+- `docs/uart-peer-emulator.md` describes controlled UART1 emulator tests and
+  their limits.
 - `docs/upstream-findings.md` records confirmed AgonDev and Fab defects, their local
   workarounds, and reproducible reports for upstream maintainers.
 - `docs/port-200-qualification.md` records the completed generic portability,

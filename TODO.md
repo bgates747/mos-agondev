@@ -1,6 +1,6 @@
 # Authoritative TODO
 
-No actionable generic port-infrastructure tasks remain open.
+No unfinished generic tasks.
 
 Product-specific implementation and release gates belong to their maintained
 source repositories. Completed generic PORT-200 qualification is summarized in
