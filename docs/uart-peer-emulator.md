@@ -21,8 +21,16 @@ The adaptation adds the missing UART1 receive interrupt and gives the explicit
 peer control of PC3 CTS when the guest configures that pin as an input. This
 avoids the graphical joystick-high input masking a ready peer. It preserves
 the guest ISR, driver, parser and firmware effects. It supplies ordered bytes
-and constant CTS-ready, not baud, FIFO overflow, RTS timing or physical peer
+and CTS backpressure when its nonblocking host socket fills, not baud, real
+UART FIFO overflow, RTS timing or physical peer
 qualification. Product packet semantics and assertions belong to the consumer.
+
+The peer retains at most sixteen pending transmit bytes, retries on socket
+read/CTS activity, and withdraws CTS until those bytes drain. It never blocks
+the guest CPU waiting for host I/O or discards a byte on `WouldBlock`. A guest
+which ignores CTS and exhausts this bound fails explicitly. This corrects the
+earlier adapter's process exit on large graphics uploads; it is test transport
+behavior, not a production UART or renderer change.
 
 Remove the receive-interrupt workaround when the selected official runtime
 implements it; retire the socket/CTS adaptation when a supported equivalent

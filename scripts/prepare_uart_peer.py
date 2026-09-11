@@ -2,7 +2,7 @@
 """Build an isolated Fab 1.2.3 UART1 test runtime; never edit the reference.
 
 TEST-001: upstream has UART1 registers but omits its RX interrupt. The explicit
-socket peer models ordered bytes and CTS-ready only. It is not a hardware UART
+socket peer models ordered bytes and host-socket CTS backpressure only. It is not a hardware UART
 or timing qualification. Delete these adaptations once upstream provides both.
 """
 import argparse
@@ -19,7 +19,8 @@ PEER = r'''// Generated TEST-001 byte peer. See prepare_uart_peer.py for scope.
 use agon_ez80_emulator::SerialLink;
 use std::io::{Read, Write, ErrorKind};
 use std::os::unix::net::UnixStream;
-pub struct Peer(UnixStream);
+use std::collections::VecDeque;
+pub struct Peer { socket: UnixStream, pending: VecDeque<u8> }
 fn fail(message: &str, error: impl std::fmt::Debug) -> ! {
     eprintln!("{}: {:?}", message, error);
     std::process::exit(2); // A worker-thread panic could leave the UI alive.
@@ -28,23 +29,42 @@ pub fn connect(path: Option<&str>) -> Option<Box<dyn SerialLink>> {
     path.map(|path| {
         let socket = UnixStream::connect(path).unwrap_or_else(|e| fail("UART1 test peer connection failed", e));
         socket.set_nonblocking(true).unwrap_or_else(|e| fail("UART1 test peer nonblocking setup failed", e));
-        eprintln!("TEST UART1 byte peer active (CTS ready; no physical timing proof)");
-        Box::new(Peer(socket)) as Box<dyn SerialLink>
+        eprintln!("TEST UART1 byte peer active (host backpressure; no physical timing proof)");
+        Box::new(Peer { socket, pending: VecDeque::with_capacity(16) }) as Box<dyn SerialLink>
     })
+}
+impl Peer {
+    // A nonblocking socket can fill while the consumer processes an upload.
+    // Retain at most sixteen in-flight bytes and withdraw CTS until drained.
+    // Never block the guest CPU or discard/reorder a byte on WouldBlock.
+    fn flush(&mut self) {
+        while let Some(byte) = self.pending.front().copied() {
+            match self.socket.write(&[byte]) {
+                Ok(1) => { self.pending.pop_front(); }
+                Err(e) if e.kind() == ErrorKind::WouldBlock => return,
+                Err(e) if e.kind() == ErrorKind::Interrupted => continue,
+                other => fail("UART1 test peer write failed", other),
+            }
+        }
+    }
 }
 impl SerialLink for Peer {
     fn send(&mut self, byte: u8) {
-        self.0.write_all(&[byte]).unwrap_or_else(|e| fail("UART1 test peer write failed", e));
+        self.flush();
+        if self.pending.len() == 16 { fail("UART1 test peer overflow: guest ignored CTS", self.pending.len()); }
+        self.pending.push_back(byte);
+        self.flush();
     }
     fn recv(&mut self) -> Option<u8> {
+        self.flush();
         let mut byte = [0];
-        match self.0.read(&mut byte) {
+        match self.socket.read(&mut byte) {
             Ok(1) => Some(byte[0]),
-            Err(e) if e.kind() == ErrorKind::WouldBlock => None,
+            Err(e) if e.kind() == ErrorKind::WouldBlock || e.kind() == ErrorKind::Interrupted => None,
             other => fail("UART1 test peer disconnected or failed", other),
         }
     }
-    fn read_clear_to_send(&mut self) -> bool { true }
+    fn read_clear_to_send(&mut self) -> bool { self.flush(); self.pending.is_empty() }
     fn owns_cts_pin(&self) -> bool { true }
 }
 '''
@@ -97,7 +117,7 @@ def adapt(root):
         replace(prefix+'/parse_args.rs', '        ram_size: pargs',
                 '        uart1_peer: pargs.opt_value_from_str("--uart1-peer")?,\n        ram_size: pargs')
         replace(prefix+'/parse_args.rs', '  --mos PATH',
-                '  --uart1-peer PATH     TEST ONLY: Unix-socket byte peer, CTS ready\n  --mos PATH')
+                '  --uart1-peer PATH     TEST ONLY: Unix-socket byte peer, host CTS backpressure\n  --mos PATH')
     replace('agon-cli-emulator/src/main.rs', 'uart1_link: Box::new(DummySerialLink {}),',
             'uart1_link: test_serial_peer::connect(args.uart1_peer.as_deref())\n'
             '                    .unwrap_or_else(|| Box::new(DummySerialLink {})),')
@@ -149,7 +169,7 @@ def main():
         'reference_commit': REFERENCE, 'adapter_sha256': digest(Path(__file__)),
         'host_library_directory': str(libraries) if libraries else None,
         'files': {name: digest(root/name) for name in files},
-        'scope': 'UART1 RX IRQ and ordered byte peer; constant CTS; no physical timing or RTS proof',
+        'scope': 'UART1 RX IRQ and ordered byte peer; host-socket CTS backpressure; no physical timing or RTS proof',
     }, indent=2)+'\n')
     print('UART1 test runtime built: '+str(root))
 

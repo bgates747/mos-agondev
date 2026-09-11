@@ -65,3 +65,26 @@ generated machine-local runtime manifest.
    preparation. No new emulator behavior is introduced.
 
 All 134 generic tests pass with the portability guard unchanged. Rebuilding with the explicit prior library directory produces no changed runtime-file hashes. The generated manifest records the new helper hash and explicit directory; old manifests are preserved. The existing consuming graphical PASS therefore tests the exact resulting runtime executables.
+
+## Large-upload socket backpressure — 2026-09-11
+
+The Extender graphics timing consumer exposed a local adapter defect: the
+nonblocking Unix socket filled while its native VDP peer processed a bitmap,
+and `write_all` exited the emulator with status 2 on `WouldBlock`. The guest
+firmware did not crash. The earlier constant-ready adapter cannot qualify this
+larger workload.
+
+The maintained generator now retains a bounded sixteen-byte pending queue and
+withdraws its modeled CTS until the host socket drains. It preserves ordered
+bytes, fails explicit peer disconnects/overflow, and never blocks the guest
+CPU. No official emulator source is edited. The generated Rust unit test fills
+a real Unix socket, verifies CTS withdrawal, then drains and compares every
+byte before checking reverse delivery. That test passes. Consuming paired
+graphics and Author visual review remain required before source freeze.
+
+The consuming paired graphics review completed 256 intervals and 17 independent
+presentation checks. All 135 generic tests pass. On 2026-09-11 the Author
+supplied the completed graphical screen and MOS prompt and authorized hardware
+deployment, accepting this runtime correction for source freeze. One later
+bounded native completion timeout remains recorded by the consumer; it is not
+silently retried or classified as a physical-board defect.
