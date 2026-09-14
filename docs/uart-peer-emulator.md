@@ -36,3 +36,44 @@ Remove the receive-interrupt workaround when the selected official runtime
 implements it; retire the socket/CTS adaptation when a supported equivalent
 provides the controlled tests. [TEST-001](tasks/TEST-001.md) retains the original
 review and validation history.
+
+## Optional UART1 transmit interrupts
+
+Pass `--uart1-tx-interrupts` only when the consumer explicitly requires and
+records this model. The default adapted source remains byte-identical to the
+reviewed RX-only generator. For a new isolated output, with `FAB_ROOT` already
+set to the pinned reference:
+
+```bash
+.venv/bin/python scripts/prepare_uart_peer.py \
+  --fab-root "$FAB_ROOT" --output .emulator/uart-peer-txirq \
+  --uart1-tx-interrupts
+```
+
+Add `--library-dir PATH` when this host requires non-system SDL libraries.
+Rust/Cargo and the reference runtime's host build dependencies are required.
+The consumer must then use its canonical profile generator with this runtime,
+pin `runtime-inputs.json` and the executable, and launch via that profile's
+`./fab-agon-emulator` wrapper. Never patch the generated sources or run the
+raw linked executable as a substitute for the generated profile entry point.
+
+This option binds UART1 interrupt vector0x1A and IIR reads to actual enabled
+RX/TX state. RX-ready outranks transmit-complete, which outranks holding/FIFO-
+empty. Completion additionally requires the inherited shift-register cooldown
+to be zero. IIR reports active-low pending and FIFO status bits without
+clearing IER enable bits. THR writes and IER masking change transmit demand.
+The definitions follow eZ80F92/F93 PS015317-0120, pp105–107 and113–115.
+
+UART0, byte cooldown arithmetic, FIFO capacities and host-socket CTS remain
+unchanged. This is still not a full peripheral model: error/timeout/modem
+interrupts, FIFO reset semantics, all operating modes, electrical framing,
+physical baud and RTS timing are outside this correction. Independent tests
+compile the adapted Rust UART and exercise the register/FIFO transitions;
+consumer packet semantics and physical qualification remain elsewhere.
+
+The manifest records `uart1_tx_interrupts` and adapter/source/executable hashes.
+Consumers should reject a mismatch between the selected fixture and that
+manifest, and preserve earlier RX-only failures as separate evidence. The
+Extender consumer's passing fixed integration is summarized in
+[TEST-002](tasks/TEST-002.md). It is not evidence that a physical game sped up.
+Human emulator validation and explicit commit approval remain open.
