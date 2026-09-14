@@ -74,7 +74,30 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def adapt(root):
+UART1_IRQ_METHOD = '''
+// TEST-002 optional UART1 status/demand binding; PS015317-0120 pp105-115.
+// Keep the inherited byte-clock/FIFO implementation. UART0 never calls this
+// method. IIR is read-only: reading it must not erase an IER enable bit.
+// RX errors/timeouts and modem edges are not represented by this model.
+impl Uart {
+    pub fn uart1_interrupt_identification(&self) -> u8 {
+        let fifo_status = if self.fctl & FCTL_FIFOEN != 0 { 0xc0 } else { 0 };
+        let source = if self.ier & 1 != 0 && self.rx_buf.is_some() {
+            0x04 // receiver-ready has higher priority than either transmitter
+        } else if self.ier & 0x10 != 0 && self.tx_fifo.is_empty() && self.transmit_cooldown == 0 {
+            0x0a // complete: both holding FIFO and shift register are empty
+        } else if self.ier & 2 != 0 && self.tx_fifo.is_empty() {
+            0x02 // holding-empty may be true while the final byte is shifting
+        } else {
+            0x01 // active-low interrupt status: no enabled source
+        };
+        fifo_status | source
+    }
+}
+'''
+
+
+def adapt(root, uart1_tx_interrupts=False):
     def replace(file, old, new):
         path = root / file
         source = path.read_text()
@@ -130,11 +153,37 @@ def adapt(root):
     }
     let remaining = pargs.finish();''')
 
+    if uart1_tx_interrupts:
+        # Explicit opt-in: preserve every byte of the reviewed default runtime.
+        # This supplies a documented missing peripheral event, not guest state,
+        # synthetic VBlank/RX events or a faster serial clock.
+        replace('agon-ez80-emulator/src/agon_machine.rs',
+                '''            // TEST-001: the upstream model omits UART1 RX interrupts.
+            if self.uart1.is_rx_interrupt_enabled() && self.uart1.rx_byte_ready() {''',
+                '''            // TEST-002: enabled UART1 RX/TX sources own vector0x1a.
+            if self.uart1.uart1_interrupt_identification() & 1 == 0 {''')
+        replace('agon-ez80-emulator/src/agon_machine.rs',
+                '''            0xd2 => {
+                // UART1_IIR
+                if self.uart1.ier & 0x02 != 0 {
+                    self.uart1.ier = self.uart1.ier & 0b11111101;
+                    0x02
+                } else {
+                    0x04
+                }
+            }''',
+                '''            // TEST-002: read-only UART1 priority/status, including FIFO bits.
+            0xd2 => self.uart1.uart1_interrupt_identification(),''')
+        uart = root/'agon-ez80-emulator/src/uart.rs'
+        uart.write_text(uart.read_text()+UART1_IRQ_METHOD)
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--fab-root', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--uart1-tx-interrupts', action='store_true',
+                        help='TEST-002 opt-in UART1 RX/TX demand and read-only IIR; no physical timing claim')
     parser.add_argument('--library-dir', type=Path,
                         help='Optional directory for non-system host libraries; otherwise inherit the build environment')
     args = parser.parse_args()
@@ -149,7 +198,7 @@ def main():
     archive = subprocess.check_output(['git', '-C', str(reference), 'archive', REFERENCE])
     with tarfile.open(fileobj=io.BytesIO(archive)) as source:
         source.extractall(root, filter='data')
-    adapt(root)
+    adapt(root, uart1_tx_interrupts=args.uart1_tx_interrupts)
     env = os.environ.copy()
     if libraries is not None:
         for name in ('LIBRARY_PATH', 'LD_LIBRARY_PATH'):
@@ -168,8 +217,10 @@ def main():
     (root/'runtime-inputs.json').write_text(json.dumps({
         'reference_commit': REFERENCE, 'adapter_sha256': digest(Path(__file__)),
         'host_library_directory': str(libraries) if libraries else None,
+        'uart1_tx_interrupts': args.uart1_tx_interrupts,
         'files': {name: digest(root/name) for name in files},
-        'scope': 'UART1 RX IRQ and ordered byte peer; host-socket CTS backpressure; no physical timing or RTS proof',
+        'scope': ('UART1 RX/TX IRQ and read-only IIR; ' if args.uart1_tx_interrupts else 'UART1 RX IRQ; ')
+                 + 'ordered byte peer; host-socket CTS backpressure; no physical timing or RTS proof',
     }, indent=2)+'\n')
     print('UART1 test runtime built: '+str(root))
 
