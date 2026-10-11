@@ -52,6 +52,7 @@ REGISTER_INSTRUCTIONS = {
     0x80: "TMR0_CTL",
     0x81: "TMR0_DR_L/TMR0_RR_L",
     0x82: "TMR0_DR_H/TMR0_RR_H",
+    0x9A: "PB_DR",
     0x9E: "PC_DR",
     0x9F: "PC_DDR",
     0xA0: "PC_ALT1",

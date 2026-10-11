@@ -17,6 +17,7 @@ class UartRegisterTests(unittest.TestCase):
             source = Path(temporary) / 'uart.c'
             output = source.with_suffix('.s')
             source.write_text('#include "ez80.h"\n'
+                              'unsigned char sd_selected(void) { return PB_DR & 0x10; }\n'
                               'unsigned char status(void) { return UART1_LSR; }\n'
                               'unsigned char receive(void) { return UART1_RBR; }\n'
                               'void transmit(unsigned char c) { UART1_THR = c; }\n')
@@ -27,6 +28,7 @@ class UartRegisterTests(unittest.TestCase):
                             '-S', str(source), '-o', str(output)], check=True,
                            capture_output=True, text=True)
             assembly = output.read_text()
+            self.assertRegex(assembly, r'in0\s+a,\s*\(154\)')
             self.assertRegex(assembly, r'in0\s+a,\s*\(213\)')
             self.assertRegex(assembly, r'in0\s+a,\s*\(208\)')
             self.assertRegex(assembly, r'out0\s*\(208\),\s*a')
