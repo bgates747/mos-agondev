@@ -7,11 +7,13 @@ recommend measured remedies compatible with the Author's requirement to use
 native ZDS II. Functionality must not be removed merely to fit before the
 baseline discrepancy has been explained.
 
-Status: initial unattended tranche completed 2026-10-15 after Author approval.
-Setup, reproduction and analysis through B003-14 are complete. Preliminary
-recommendations are recorded; pause for discussion before promotion.
-The authoritative open-work entry is in `TODO.md`; this document defines its
-scope, inputs, sequence, and acceptance criteria.
+Status: investigation disposed on 2026-10-15 following the Author's selection
+of an AgonDev-native foundation. Setup/reproduction/analysis are complete;
+ZDS-only remedies are no longer the implementation target. Generic-tool
+promotion continues under [BUILD-005](BUILD-005.md). This file preserves the
+original scope and evidence, not a current native-ZDS requirement or runtime
+acceptance of experimental compaction builds. Current policy is
+[native foundation guidance](../native-foundation-policy.md).
 
 Outcomes and evidence for completed items are in the
 [initial analysis report](../../research/build-003-2026-10-15.md) and
@@ -140,17 +142,23 @@ their reported usage must be checked against the AgonDev payload accounting.
 
 ## Phase 4 — Recommendations and promotion
 
-15. [ ] **B003-15** — Recommend the smallest justified changes for the required ZDS build. Give
+15. [x] **B003-15** — Recommend the smallest justified changes for the required ZDS build. Give
    measured savings where available, identify estimates clearly, and explain
    behavior, ABI and maintenance risks. Preserve EMOS functionality unless the
    Author separately chooses a tradeoff after reviewing the explanation.
-16. [ ] **B003-16** — Promote reviewed generic tooling and concise reproducible evidence into
+   Disposed: measured recommendations recorded; ZDS-only implementation
+   superseded by the accepted native AgonDev direction, not runtime-qualified.
+16. [x] **B003-16** — Promote reviewed generic tooling and concise reproducible evidence into
    `mos-agondev` `main`; route EMOS source remedies into `agon-emos`. Preserve
    frozen evidence, exact commands, tool identities, source hashes and maps or
    an indexed artifact manifest. Keep proprietary tool bytes outside Git.
-17. [ ] **B003-17** — Record results and the task disposition in the current dated development
+   Disposed: report/summary published in `b9e957e`; selected generic-tool
+   promotion transferred to B005-09. No product remedy was promoted.
+17. [x] **B003-17** — Record results and the task disposition in the current dated development
    log, then update the authoritative TODO after acceptance. A bounded account
    of remaining unknowns is acceptable; unsupported attribution is not.
+   Complete: disposition and policy rationale recorded in the dated log;
+   remaining implementation now has one authoritative tracker, BUILD-005.
 
 ## Retained evidence to consult
 
@@ -173,8 +181,10 @@ existence before use.
 
 This task authorizes offline build analysis after the discussion pause. It
 does not authorize bench access, flashing, resets, SD deployment, hardware
-tests, startup-file changes, or cross-partition access. AgonDev is the pinned
-comparison baseline; native ZDS II remains the required EMOS toolchain.
+tests, startup-file changes, or cross-partition access. The original analysis
+used AgonDev as the pinned comparison baseline and native ZDS as its required
+target. That policy is superseded by the accepted native AgonDev foundation;
+historical measurements and qualification limits remain unchanged.
 
 The UART agent will supply proposed integration separately. First explain the
 installed firmware's discrepancy; assess new UART integration only against

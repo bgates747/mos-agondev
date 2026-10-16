@@ -4,7 +4,15 @@ This repository owns reusable AgonDev port infrastructure, not maintained MOS
 or EMOS product source. Read [OWNERSHIP.md](OWNERSHIP.md) before adding a
 source-specific rule, fixture, contract, or task.
 
-`mos-agondev` builds ZDS-oriented
+The accepted direction is a separate, human-maintained AgonDev-native MOS
+foundation for future EMOS development, with upstream ancestry and documented
+reasons for local changes. Extender is the priority; experimental UART
+integration is deferred. Read the
+[native foundation policy](docs/native-foundation-policy.md) and
+[migration task](docs/tasks/BUILD-005.md). The native foundation is not yet
+implemented/qualified; current build instructions below remain applicable.
+
+The currently implemented `mos-agondev` pipeline builds ZDS-oriented
 [`agon-mos`](https://github.com/AgonPlatform/agon-mos) source with the
 [AgonDev](https://github.com/AgonPlatform/agondev) toolchain. The maintained
 source keeps its scoped, anonymous, and macro-local assembly idioms; a strict
@@ -112,6 +120,9 @@ still apply.
 
 ## Documentation map
 
+- [`docs/native-foundation-policy.md`](docs/native-foundation-policy.md) —
+  accepted native-source direction, readability, upstream traceability and
+  foundation/EMOS handoff requirements.
 - [`STARTHERE.md`](STARTHERE.md) — current setup and development workflow.
 - [`TODO.md`](TODO.md) — the only authoritative list of unfinished work.
 - [`docs/README.md`](docs/README.md) — current technical contracts and project

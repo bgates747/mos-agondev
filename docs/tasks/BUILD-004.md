@@ -6,10 +6,13 @@ on each foundation. This separates toolchain costs, EMOS enhancement costs,
 and UART integration costs. Two enhanced variants do not yet exist, so the
 complete comparison requires reviewed porting and integration, not just builds.
 
-Status: Author approved Stages 1–3 on 2026-10-15 ("high it is, proceed").
-Those stages are complete; pause for review before separately authorizing
-Stage 4. Toolchain policy remains undecided; this task does not supersede
-existing native-ZDS requirements. Results and qualification limits are in the
+Status: Stages 1–3 completed and published in `b9e957e`. The Author subsequently
+selected the native AgonDev foundation and deferred UART on 2026-10-15.
+Stage 4 is disposed as deferred, **not implemented or qualified**; UART may
+never enter EMOS. No complete eight-combination matrix is claimed. The active
+Extender-first transition is [BUILD-005](BUILD-005.md), governed by the
+[native foundation policy](../native-foundation-policy.md), which supersedes
+the earlier native-ZDS requirement. Results and qualification limits are in the
 [comparison report](../../research/build-004-2026-10-15.md) and
 [portable summary](../../evidence/build-004-summary.json).
 
@@ -168,27 +171,36 @@ suite retains one objdump-display failure (23/24 pass); its stock-only corpus
 assertion also cannot be used unchanged for UART's 16-unit fixture. These are
 recorded limits, not a successful full-suite claim. No runtime gate is closed.
 
-## Stage 4 — Conditional EMOS integration and comparison
+## Stage 4 — Deferred EMOS UART integration and comparison
 
-11. [ ] **B004-11** — After separate authorization, agree owner-reviewed EMOS
+The items below are marked disposed, not completed implementation. Releasing
+UART integration later requires a new explicit decision and owning task; they
+are not a prerequisite for the foundation or EMOS transition.
+
+11. [x] **B004-11** — After separate authorization, agree owner-reviewed EMOS
     integration design and source fences. Start with Legacy routing; preserve
     EMOS ownership and refuse unsupported async sessions on other routes rather
     than bypassing EMOS. Preserve UART1 input/SD/console, admission, recovery,
     interrupt state, blocking barriers and application-return fencing.
-12. [ ] **B004-12** — Integrate the selected UART revision in an isolated EMOS
+    Disposed: UART integration design deferred by the Author.
+12. [x] **B004-12** — Integrate the selected UART revision in an isolated EMOS
     clone, retaining discovery/ABI, three-slot borrowed-source queue, session
     policy/reset, single UART0 TX/RX owner, existing receive parser, per-byte
     legacy writes, masked-IFF pumping and callback/source-lifetime constraints.
     OTIRX remains bounded CPU block I/O, not DMA: maximum 16 writes per service
     opportunity, CTS checked before each block, source/budget bounds preserved.
-13. [ ] **B004-13** — Build the identical integrated EMOS source under both
+    Disposed: no EMOS UART integration performed; future inclusion undecided.
+13. [x] **B004-13** — Build the identical integrated EMOS source under both
     toolchains and native profiles. Report integration replacement/addition
     costs, RAM constraints, failed links and adaptation differences separately.
     Do not silently extract diagnostics or cut features to fit.
-14. [ ] **B004-14** — Consolidate the complete matrix and recommend next steps.
+    Disposed: absent integration remains unmeasured; no estimated row promoted.
+14. [x] **B004-14** — Consolidate the complete matrix and recommend next steps.
     Promote reviewed reusable tools/evidence here, route maintained product
     changes to owners, record qualification still required and obtain Author
     disposition before updating the authoritative TODO.
+    Disposed: bounded Stages 1–3 report published; partial matrix retained;
+    generic-tool promotion carried to B005-09 and UART work deferred.
 
 ## Acceptance
 
@@ -199,4 +211,5 @@ identified optimization controls; absent integrations must be shown as absent,
 not estimated results. Runtime acceptance, production promotion and toolchain
 selection remain separate Author decisions. Initial registration was
 documentation-only; subsequent approval released Stages 1–3 as stated above.
-No commit, push, source promotion or Stage 4 authorization is inferred.
+Author separately authorized publication of the analysis in `b9e957e`.
+No source promotion, runtime acceptance or Stage 4 implementation was authorized.

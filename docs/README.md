@@ -4,6 +4,10 @@ This directory contains current contracts and durable maintenance references.
 It does not contain fresh-clone instructions, the authoritative task list, or
 the original feasibility narrative.
 
+- `docs/native-foundation-policy.md` records the accepted AgonDev-native
+  direction, human-readable source/upstream provenance requirements and the
+  foundation-to-EMOS handoff. Current translation instructions remain valid
+  until native qualification/adoption.
 - `docs/assembly-compatibility-strategy.md` defines the maintained ZDS-oriented
   language, strict translation behavior, diagnostics, and generated-source
   boundary.

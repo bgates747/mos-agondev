@@ -11,6 +11,21 @@ developer-owned worktree being edited under the workflow in `STARTHERE.md`.
 Read `OWNERSHIP.md` before changing source selection, preparation, translation,
 runtime, candidate profiles, qualification evidence, or task ownership.
 
+## Accepted development direction
+
+Read `docs/native-foundation-policy.md` before new MOS-family source work.
+The Author selected a separate, human-maintained AgonDev-native MOS foundation
+for future EMOS development on 2026-10-15, superseding the native-ZDS-required
+direction. Preserve upstream ancestry, recognizable source/macros and readable
+private/anonymous labels; explain every meaningful local deviation. Extender
+and EMOS take priority; experimental UART integration is deferred.
+
+`BUILD-005` owns migration coordination. This repository remains reusable
+infrastructure, not the maintained firmware fork. Cross-owner changes follow
+the central foundation contract. The native source/build is not implemented or
+qualified yet: existing prepared/generated source remains disposable, and the
+instructions below still describe the currently implemented translation build.
+
 ## Current state
 
 The study concludes that an AgonDev MOS port is technically feasible. The first

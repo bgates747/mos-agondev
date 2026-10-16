@@ -1,8 +1,15 @@
 # Start here: developing MOS with AgonDev
 
-This repository uses **ZDS-oriented source as maintained source** and
-AgonDev-compatible source as disposable build output. Do not hand-edit the
-generated GNU-as files.
+The Author has selected a **human-maintained AgonDev-native MOS foundation**
+for future EMOS development. Read the
+[accepted policy](docs/native-foundation-policy.md) for source readability,
+upstream traceability, ownership and the Extender-first priority. Migration is
+tracked in [BUILD-005](docs/tasks/BUILD-005.md); UART integration is deferred.
+
+The native foundation is not implemented/qualified yet. The instructions below
+describe the **currently implemented translation workflow**, where ZDS-oriented
+source is maintained and GNU-as output is disposable. Do not hand-edit those
+generated files or mistake them for the new maintained fork.
 
 > **Important compatibility limit:** `zds2gas.py` is not a complete ZDS II
 > assembler, nor was it built from an exhaustive survey of every ZDS II
@@ -230,7 +237,7 @@ to check the derived binary. Use a new evidence directory for every invocation
 and preserve a reviewed directory only when its owning product process calls
 for it.
 
-## 5. Normal development cycle
+## 5. Current translation development cycle
 
 1. Edit the ZDS-oriented source in the writable checkout selected by
    `upstream/agon-mos`. Keep using the supported ZDS idioms, including scoped,
@@ -343,15 +350,19 @@ source identity; the configured emulator profile still records and verifies
 the exact executable it uses. Do not update the evidence file merely to silence
 a mismatch; review every pin or measurement change deliberately.
 
-## 8. About an AgonDev-native maintained fork
+## 8. Accepted native development after qualification
 
-Maintaining GNU-as/AgonDev-native source directly is a possible future project
-model, but this repository does not currently implement it. Editing
-`projects/mos-port/worktree` or `projects/mos-port/generated` does not create
-such a fork: both are ignored, reproducible state and their changes can be
-discarded.
+The future foundation maintains C/GNU assembly directly in a separate firmware
+repository; routine builds will not rerun the converter over a second maintained
+ZDS tree. Future upstream releases receive reviewed native ports, and EMOS
+adopts an explicitly pinned qualified foundation while retaining its product
+history and checks. ZDS remains an upstream reference tool, not an EMOS release
+requirement. Stock-foundation work follows upstream/generic needs; Extender
+drives active product development.
 
-A native model would require a deliberately maintained source tree, new
-provenance and synchronization rules, and a policy for merging later ZDS
-upstream changes. Until that decision is made, maintain the ZDS-oriented source
-and generate the AgonDev inputs.
+Human-readable modules/macros/local labels and documented upstream origins and
+deviations are acceptance requirements, not optional cleanup. See the
+[policy](docs/native-foundation-policy.md) for the complete contract. Existing
+`projects/mos-port/worktree` and `generated` remain disposable; editing them
+does not create the maintained fork. Continue using the current executable
+workflow until the new native build and downstream adoption are qualified.

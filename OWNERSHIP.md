@@ -1,7 +1,16 @@
 # Repository ownership
 
 This repository is the reusable AgonDev build and qualification environment
-for maintained ZDS-oriented MOS-family source. It is not a MOS product fork.
+for MOS-family source. Its currently implemented pipeline accepts maintained
+ZDS-oriented source; the accepted native-foundation transition is described in
+[project policy](docs/native-foundation-policy.md). It is not a MOS product fork.
+
+The mos-agondev agent leads generic native-foundation migration/qualification
+in a separate firmware repository. That responsibility does not transfer
+maintained source into this infrastructure repository or give it ownership of
+EMOS product behavior. The
+[central contract](../agon-dev-env/cross-agent/mos_agondev_foundation/CONTRACT.md)
+governs cross-owner handoff; implementation remains in the owning repositories.
 
 ## This repository owns
 
@@ -35,11 +44,15 @@ for maintained ZDS-oriented MOS-family source. It is not a MOS product fork.
 
 1. A change applicable to every supported MOS-family source belongs here.
 2. A source-specific behavior change belongs in that source repository.
-3. A one-time source portability exception belongs in the exact, fail-closed
-   preparation profile for that input; an ongoing ZDS language feature belongs
-   in the translator with semantic and diagnostic tests.
+3. In the existing translation pipeline, a one-time source portability
+   exception belongs in the exact, fail-closed preparation profile; an ongoing
+   ZDS language feature belongs in the tested translator. After native adoption,
+   maintained-source portability changes belong in the foundation or product
+   source with provenance and reasons, not a hidden regeneration pass.
 4. Candidate-only command, ABI, media, or hardware expectations must be passed
    through `SOURCE_PROFILE`, another explicit option, or a reviewed fixture.
    Do not hard-code one product's vocabulary into generic comparison machinery.
 5. Generated output is evidence only and must never be hand-edited to alter
-   maintained behavior.
+   maintained behavior. Native migration explicitly reviews/promotes source
+   into a separately maintained tree; it never changes the ownership of an
+   existing disposable `worktree` or `generated` directory by implication.
