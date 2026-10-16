@@ -174,8 +174,9 @@ existence before use.
 6. `../agon-mos/experiments/uart0-extender/budget-results.json` and
    `summarize-budget.py`.
 7. `../agon-mos/build/uart0-extender/`.
-8. `../../agon-mos/` is the distinct official read-only reference, not the
-   Author's `../agon-mos/` fork or the proposed ZDS workspace clone.
+8. The official read-only MOS reference listed in the shared environment's
+   repository guide is distinct from the Author's `../agon-mos/` fork and
+   the proposed ZDS workspace clone; do not assume a developer's parent layout.
 
 ## Operating boundaries
 

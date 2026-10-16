@@ -489,8 +489,14 @@
     "shared_source_profile": 4
   },
   "supporting_controls": {
-    "mechanical": "mechanical-build-03/result.json",
-    "readable": "readable-build/result.json",
-    "native": "../../agon-mos-agondev/.build/first-tranche-proof/result.json"
+    "mechanical": "../worktrees/mos-build-005/mechanical-build-03/result.json",
+    "readable": "../worktrees/mos-build-005/readable-build/result.json",
+    "native": "../agon-mos-agondev/.build/first-tranche-proof/result.json"
+  },
+  "portable_export": {
+    "path_base": "mos-agondev repository root",
+    "historical_receipt": "../worktrees/mos-build-005/summary.json",
+    "historical_receipt_sha256": "e968118001cc48ff49ff51e68af0b64447612bd389b5a7b84f8bad571506dc58",
+    "change": "Only supporting-control path coordinates normalized; original frozen receipt and measurements preserved."
   }
 }
