@@ -168,6 +168,33 @@ and may never be merged into EMOS.
 
 ## Canonical API definitions and reservations
 
+### Custom MOS project ownership
+
+Every custom MOS implementation is maintained in its own project space and
+repository, not a product-specific branch of the generic foundation or shared
+infrastructure. A custom project may use its own development branches. The
+foundation's default branch (currently `main`, not `master`) owns the canonical
+reservation register and shared bindings for all such projects. Reserving an
+identifier does not merge that project's implementation, enable the feature in
+stock MOS, or authorize deployment/release. The foundation owner coordinates
+reservations; each custom owner builds and qualifies its own firmware.
+
+The register is `api/reservations.json` in `agon-mos-agondev/main`, alongside
+its canonical interfaces. Generated assembly and C bindings consume that single
+register; custom projects must depend on the selected shared interface package,
+not recreate its constants. This is a local family allocation authority, not
+an official upstream reservation. New allocations should minimize collision
+risk through an explicitly coordinated range/discovery design; existing
+experimental identifiers require compatibility review before renumbering.
+
+UART's retained experimental `mos_getfunction` index `0x13` belongs to
+`agon-mos` for UTX1 discovery. It grants no new RST08 call number or additional
+range. Index `0x12` is a retired qsort tombstone, unavailable for reuse; qsort
+is not implemented by recording it. Custom operation offsets remain inside
+the versioned owner-specific table, not separate global MOS allocations.
+
+### Interface consumption
+
 1. The official MOS `src/mos_api.inc` and AgonDev `<agon/mos.h>` are the
    canonical assembly and C/C++ interfaces. The older `<mos_api.h>` name is a
    compatibility entry point, not a separately maintained interface.
@@ -204,7 +231,9 @@ and may never be merged into EMOS.
 7. Changes to the interface distribution, SDK bindings or consumer projects
    follow their owners' review boundaries. These policies do not authorize
    editing upstream reference checkouts or bulk replacement of consumers.
-   Physical packaging and automated collision checks remain implementation work.
+   The first register and assembly/C consistency checks are implemented for
+   the native getfunction reservations. Broader distribution, other namespaces,
+   firmware identity and upstream coordination remain API-001 work.
 
 ## Firmware and interface build identity
 

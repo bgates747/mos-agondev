@@ -25,6 +25,9 @@ contracts are indexed by `docs/README.md`. The only unfinished-work list is
 3. [Native MOS foundation first tranche](build-005-2026-10-15.md) records
    readable maintained source, direct builds and exact offline equivalence;
    it is not an EMOS adoption or runtime qualification.
+4. [Native foundation validation](build-005-validation-2026-10-16.md) records
+   local candidate commits, clean reproduction, bounded headless runtime checks
+   and the prepared but incomplete Oryx human-review gate.
 
 ## Exact baseline reproduction
 

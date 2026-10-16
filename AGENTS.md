@@ -36,7 +36,24 @@ below describe the retained translation build.
 
 ## Current state
 
-The study concludes that an AgonDev MOS port is technically feasible. The first
+The native foundation candidate is committed locally as
+`92662538a5766ae1e3d5b47e7dd78829a4dfe1c5`, with selected helpers
+`6cbaf08b7dc4155a1428a83ad9dcb99ae8cbf847`. Its clean 102,055-byte stock
+control passes exact binary/public-symbol comparison and bounded Oryx headless
+boot/shell/two-cold-boot API checks. Human native-VDP shell checks passed, but
+the initial API review failed with a wrong-root fixture and a separate
+same-boot number-extraction failure also reproduced on official MOS. Corrected
+root-based file/persistence checks pass unattended against both images; the
+Author directed these tests to be agent-run, not a manual reboot protocol. See
+`research/build-005-validation-2026-10-16.md` and the source's
+`docs/qualification.md`. No physical qualification, accepted release, EMOS
+adoption follows. API-001's bounded main-branch reservation/register slice is
+now implemented locally; full firmware/interface identity remains unfinished.
+Custom MOS code stays in its own project, not a foundation branch. The Author
+approved scoped commit/push on 2026-10-16 after the unattended file tests;
+physical qualification and release/adoption gates are unchanged.
+
+The retained translation study concludes that an AgonDev MOS port is technically feasible. Its first
 complete candidate now builds and boots: all C and active assembly inputs link
 with a restricted runtime into a verified 102,059-byte image, and headless Fab
 tests reach the shell with directory-backed hostfs. It is still a candidate,

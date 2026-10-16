@@ -1,0 +1,298 @@
+{
+  "schema": 1,
+  "task": "BUILD-005",
+  "date": "2026-10-16",
+  "source_commit": "92662538a5766ae1e3d5b47e7dd78829a4dfe1c5",
+  "mechanical_commit": "a5fa859367998b05a8e4d17364d18d6b12b9607c",
+  "helper_commit": "6cbaf08b7dc4155a1428a83ad9dcb99ae8cbf847",
+  "documentation_fix_commit": "7b584ae",
+  "source_clean_at_build": true,
+  "binary_comparison": {
+    "schema": 1,
+    "binary_equal": true,
+    "native_binary_sha256": "f891721bbb2a0bc2845dbb13edbeb449365a315f11be48500d8e65e2ab1aebb4",
+    "reference_binary_sha256": "f891721bbb2a0bc2845dbb13edbeb449365a315f11be48500d8e65e2ab1aebb4",
+    "bytes": 102055,
+    "public_symbols_equal": true,
+    "public_symbol_count": 512,
+    "symbol_differences": {},
+    "native_elf_sha256": "bc75f9388b4136b58351bffe94a9d080255deab7fea106107967abb6fb0c10d7",
+    "reference_elf_sha256": "0ba255cc474321cda85c8ba05ee2a667787b3d201ae30a044d76869913411b18",
+    "emulator_qualified": false,
+    "hardware_qualified": false
+  },
+  "offline": {
+    "status": "pass",
+    "consumed_inputs_verified": 142,
+    "target_records": 35,
+    "c_objects_equal": [
+      {
+        "path": "main.o",
+        "sha256": "28cf57174ba3a9822df7fab46b04fa0aa30d90b7836282e3b52997b759c8d549"
+      },
+      {
+        "path": "src/clock.o",
+        "sha256": "a5e0602052d9a232d2f1d5f3e4db29b83568893824b5b94c3ed7cc1f59d6b87f"
+      },
+      {
+        "path": "src/i2c.o",
+        "sha256": "9ba1658db83d6078e97cd97fd0dcd5385f9b040ac74b9c32fd400b71ac42bb82"
+      },
+      {
+        "path": "src/mos.o",
+        "sha256": "f6bd78c82d4fb36543217cc7163ff700ad0db1be6a824d4ca39257b6ef1555e4"
+      },
+      {
+        "path": "src/mos_editor.o",
+        "sha256": "fa5196ba52f17fec0448d04689112f084d4fd8f667b6a393c4ab9b74112ffeac"
+      },
+      {
+        "path": "src/mos_file.o",
+        "sha256": "3792a631b9f04101cafd48deeb6984af9b078906a76db15d014d4f05f7c6b061"
+      },
+      {
+        "path": "src/mos_sysvars.o",
+        "sha256": "7c4adab6310baf58722b063c7f87a39c4bb59282f9e450903cfd02f516880a75"
+      },
+      {
+        "path": "src/strings.o",
+        "sha256": "0467e6cd9a953c66bf9e4d0583c687ca214579cc0b65e3dfea0258bc3cd0de05"
+      },
+      {
+        "path": "src/tests.o",
+        "sha256": "fadc228bcda9b6cf2899b6356fa3d1ce8d8fd82e1377e7883cb2da0c54d7f2a6"
+      },
+      {
+        "path": "src/timer.o",
+        "sha256": "2945ae5586a2b6706b5e4620da4de9221081e0d7c9aa1b371b7163eaa929dfdf"
+      },
+      {
+        "path": "src/uart.o",
+        "sha256": "4f80c690fe3a79acc3a65aa07310fee9914bbe1d3871735b873d3b184a1f14c4"
+      },
+      {
+        "path": "src_fatfs/diskio.o",
+        "sha256": "492c32d74779bfe4569e583bfcfacb28eefbefbc549bf4fd05b5c98d4823e86d"
+      },
+      {
+        "path": "src_fatfs/ff.o",
+        "sha256": "ba7bc75b8bc125f7e6f913907e7e9f9b7b583ce8fe0eaadd9d0815597e08c341"
+      },
+      {
+        "path": "src_fatfs/ffsystem.o",
+        "sha256": "92de4d06d45a70eef677cfdf01b60d94398b6901f4673f7a9598957e0cdde3e0"
+      },
+      {
+        "path": "src_fatfs/ffunicode.o",
+        "sha256": "20c1f8189a631d9f2321a51f730fe982ee951ca43f80893ee40cc4f69153593b"
+      },
+      {
+        "path": "src_umm_malloc/umm_malloc.o",
+        "sha256": "12f30191fd02a09430d41b7561d87317ec9dd018837bbb69e869a796662d2bb3"
+      }
+    ],
+    "probe_artifacts": "pass",
+    "format_coverage": "pass",
+    "linked_handshake": "pass",
+    "linked_legal_framing": "pass",
+    "inherited_stock_oversize_defect": "reproduced-negative-control-not-corrected",
+    "probe_sha256": "da8c50487bc32d4c9f8cfa2095bad2f4cf6c772d6498b16d1e724f5eb8c3b9e1"
+  },
+  "headless": {
+    "schema": 1,
+    "status": "pass",
+    "steps": [
+      {
+        "name": "native-boot-hostfs",
+        "status": "pass",
+        "seconds": 2.083867000000282
+      },
+      {
+        "name": "native-safe-shell",
+        "status": "pass",
+        "seconds": 30.12939582999934
+      },
+      {
+        "name": "official-safe-shell",
+        "status": "pass",
+        "seconds": 30.084349413999917
+      },
+      {
+        "name": "safe-shell-parity",
+        "status": "pass",
+        "seconds": 0.0002446979997330345
+      },
+      {
+        "name": "native-api-create",
+        "status": "pass",
+        "seconds": 2.4677563149998605
+      },
+      {
+        "name": "native-api-verify",
+        "status": "pass",
+        "seconds": 2.477494026000386
+      },
+      {
+        "name": "official-api-create",
+        "status": "pass",
+        "seconds": 2.4672728719997394
+      },
+      {
+        "name": "official-api-verify",
+        "status": "pass",
+        "seconds": 2.4824503270001514
+      }
+    ],
+    "candidate_sha256": "f891721bbb2a0bc2845dbb13edbeb449365a315f11be48500d8e65e2ab1aebb4",
+    "reference_sha256": "d564243283972690933a4554296ad6202ca4ef54572279533a942960846bebae",
+    "cli_sha256": "46dcb512afdbc5a1c5f5d0704a7c02a5197cc8263cb9f3ca9f629e65bb547f44",
+    "probe_sha256": "da8c50487bc32d4c9f8cfa2095bad2f4cf6c772d6498b16d1e724f5eb8c3b9e1",
+    "human_review": false,
+    "hardware_qualified": false,
+    "limitations": [
+      "fake-VDP CLI behavior is not physical timing/baud/CTS proof",
+      "stock inherited oversized VDP packet defect is outside these passing cases"
+    ]
+  },
+  "review_profile": {
+    "schema": 1,
+    "profile": "project-root .emulator",
+    "source_commit": "92662538a5766ae1e3d5b47e7dd78829a4dfe1c5",
+    "helper_commit": "6cbaf08b7dc4155a1428a83ad9dcb99ae8cbf847",
+    "candidate_sha256": "f891721bbb2a0bc2845dbb13edbeb449365a315f11be48500d8e65e2ab1aebb4",
+    "candidate_map_sha256": "845e5d9b4a2be88ef36b856caecef7628e63be5f435a0a12e9037332886bb65e",
+    "runtime_tag": "1.2.5",
+    "runtime_commit": "c22876d1f7ad903537c308cf65afd6553b37cdb8",
+    "submodules": [
+      "6b056597d560fbf5802db7c97172d0aaee62da4f sdcard (6b05659)",
+      " 69d51197334658411d82c44bd8abd6fc2ff88c9d src/vdp/AgonElectronHAL (v0.5-kingsvalley-9-g69d5119)",
+      " cdd57fd4d709427b2e89738ae3b086720d8cf013 src/vdp/userspace-vdp-gl (heads/main)",
+      " 1056ee38ec1cc68ed327bd32ee47d04b1c30597c src/vdp/vdp-console8 (heads/main-214-g1056ee3)"
+    ],
+    "canonical_generator_sha256": "844ab629cb604daf2469c2c1c9c5dab89d8e9abc9c62f0a19c3eceb6f960a98a",
+    "adapter_sha256": "5895a7175674a2f91a165a6d7cbb93bdd6efd3aeb967a5ddb1d0c209a29b7784",
+    "canonical_flexe_helper_sha256": "8e605a90049ab2cd67e57d3ae7ddd95a301b9dc01420828e0a911ae0dddd98e8",
+    "launcher_sha256": "7b3179b831f5bf0a464ea2d6ea9e8879399d4b7741b7dfad8921ad9a3a36ab39",
+    "runtime_manifest_sha256": "225b30e9765bc913379dd252defe8fd6156d5b53407d0469b533beae32e403d7",
+    "vdp": "official stock Platform module built with selected Fab release",
+    "human_review": false,
+    "hardware_qualified": false,
+    "graphical_instance_started": false
+  },
+  "manual_api_fixture": {
+    "schema": 1,
+    "guest_directory": "/native-api",
+    "binary_sha256": "da8c50487bc32d4c9f8cfa2095bad2f4cf6c772d6498b16d1e724f5eb8c3b9e1",
+    "fixture": [
+      [
+        ".",
+        "directory",
+        509,
+        0,
+        ""
+      ],
+      [
+        "abi-sparse.bin",
+        "file",
+        436,
+        16909061,
+        "4a01ccafbd5c60decf479bd81f6489c09c08b8dedf89d5ef87b59ef6cd571ab5"
+      ],
+      [
+        "lines.txt",
+        "file",
+        436,
+        18,
+        "3ef30b67e7b9fd6b53b65079bcd18f76f6bf6cbe23d36ef862ea82b0f96f7264"
+      ],
+      [
+        "mos-contract-probe.bin",
+        "file",
+        436,
+        20374,
+        "da8c50487bc32d4c9f8cfa2095bad2f4cf6c772d6498b16d1e724f5eb8c3b9e1"
+      ],
+      [
+        "nested",
+        "directory",
+        509,
+        0,
+        ""
+      ],
+      [
+        "nested/alpha.txt",
+        "file",
+        436,
+        11,
+        "46f4ff73cfc37ab559a3f8491135de99b9c746ff19a487e5aac20d1312e48a68"
+      ],
+      [
+        "seek.txt",
+        "file",
+        436,
+        10,
+        "84d89877f0d4041efb6bf91a16f0248f2fd573e6af05c19f96bedb9f882f7882"
+      ]
+    ],
+    "adapter_sha256": "d65a7e3684e1b9439c4c98436cc54d1f2207a0fc108b9439f0cd6fe03368cf70",
+    "human_run": false
+  },
+  "commands": {
+    "source-build-command": {
+      "returncode": 0,
+      "elapsed_seconds": 12.423056580126286
+    },
+    "probe-build-command-02": {
+      "returncode": 0,
+      "elapsed_seconds": 0.2913513840176165
+    },
+    "offline-checks-command": {
+      "returncode": 0,
+      "elapsed_seconds": 0.3550730380229652
+    },
+    "profile-guard-tests-command": {
+      "returncode": 0,
+      "elapsed_seconds": 0.1982286861166358
+    },
+    "oryx-fab-build-command": {
+      "returncode": 0,
+      "elapsed_seconds": 58.78081286000088
+    },
+    "oryx-stage-review-command-02": {
+      "returncode": 0,
+      "elapsed_seconds": 0.3722074842080474
+    },
+    "oryx-headless-command-02": {
+      "returncode": 0,
+      "elapsed_seconds": 72.49670275207609
+    },
+    "oryx-stage-api-command": {
+      "returncode": 0,
+      "elapsed_seconds": 0.2594052101485431
+    }
+  },
+  "unit_suite": {
+    "tests_run": 154,
+    "known_failures": 1,
+    "known_failure": "Binutils 2.45 backward JR disassembly target display",
+    "optional_uart_model_class_skipped": 1,
+    "path_audit_corrected_without_weakening": true
+  },
+  "source_tests": {
+    "pi": 6,
+    "oryx": 6
+  },
+  "launcher_guard_tests": 3,
+  "workspace": "../worktrees/mos-build-005-validation",
+  "scope": {
+    "graphical_emulator_started": false,
+    "human_review": false,
+    "hardware_run": false,
+    "emos_adoption": false,
+    "uart_integration": false,
+    "api_001_implemented": false,
+    "commits_pushed": false,
+    "qualified_release_tag": false
+  },
+  "status": "machine-checks-pass-with-documented-legacy-test-limitation; human-review-pending"
+}

@@ -45,3 +45,14 @@ unresolved probe/compiler frame-sensitivity observation, not a confirmed MOS
 or AgonDev wrapper defect; the small-frame candidate/reference assertion
 remains in the normal contract run. The minimized workaround and residual
 compiler/probe boundary are frozen in `docs/port-200-qualification.md`.
+
+BUILD-005 later reproduced the number-extraction assertion failure with this
+unchanged small-frame probe on its **second invocation in one boot**, under both
+official v3.0.2 and the native candidate. The normal verifier instead launches
+one invocation per cold boot. See `MOS-EXTRACTNUMBER-001` in
+[`docs/upstream-findings.md`](../../docs/upstream-findings.md) for exact pins,
+the repeated-run reproducer and the unconfirmed scratchpad-state lead; do not
+interpret the older frame observation as a proven compiler defect. Manual use
+must stage the fixtures at guest `/` and restart the emulator between CREATE
+and VERIFY. A subdirectory is not an equivalent fixture for the hard-coded
+absolute paths/current-directory assertions.

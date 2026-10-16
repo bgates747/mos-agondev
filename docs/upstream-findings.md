@@ -4,7 +4,8 @@ This document is a durable, shareable report of defects or externally owned
 limitations found while porting `agon-mos` to AgonDev. It records evidence; the
 project's only actionable work list remains `TODO.md`.
 
-The findings below were reproduced against:
+Unless a finding gives its own newer pins, the original findings were
+reproduced against:
 
 - AgonDev commit `b67ab2444a63267a42193f204889d466765d8dd2`;
 - Fab Agon Emulator commit `fbb7d7ca887a06966ca8a62ed22272409a5ab640`;
@@ -207,3 +208,67 @@ replays explicit ELF relocations and compares bytes, avoiding reliance on this
 display. Do not accept a wrong displayed target merely to make tests pass.
 A future corrected tool must pass the minimal fixture and affected regression
 before relying on its backward-target disassembly for analysis.
+
+## Stock MOS API repeated number extraction
+
+### MOS-EXTRACTNUMBER-001 — Probe fails on its second invocation in one boot
+
+On 2026-10-16, the unchanged contract probe passed on its first invocation but
+reported `CONTRACT-FAIL api-extractnumber-u24-output` on its second invocation
+within the same emulator boot. The failure reproduces with both the native
+AgonDev candidate and the unmodified official ZDS II v3.0.2 image; their complete
+CLI outputs are byte-identical for each matched root-fixture case. It is not a
+native-port regression and has not been attributed conclusively to MOS, the
+SDK wrapper, the probe, or the emulator.
+
+Measured inputs:
+
+1. Native source `92662538a5766ae1e3d5b47e7dd78829a4dfe1c5`, ROM SHA-256
+   `f891721bbb2a0bc2845dbb13edbeb449365a315f11be48500d8e65e2ab1aebb4`.
+2. Official v3.0.2 ROM SHA-256
+   `d564243283972690933a4554296ad6202ca4ef54572279533a942960846bebae`.
+3. Probe SHA-256
+   `da8c50487bc32d4c9f8cfa2095bad2f4cf6c772d6498b16d1e724f5eb8c3b9e1`,
+   built with the pinned AgonDev toolchain and local wrapper fixes above.
+4. Official Fab 1.2.5 commit `c22876d1f7ad903537c308cf65afd6553b37cdb8`;
+   CLI SHA-256
+   `46dcb512afdbc5a1c5f5d0704a7c02a5197cc8263cb9f3ca9f629e65bb547f44`.
+
+Reproducer: create an empty dedicated directory-backed SD root using
+`projects/contract-probe/verify_contract.py`'s `create_fixture(root, binary)`.
+Boot either image with that directory as the SD root and send these commands
+in the **same** process, without rebooting:
+
+```text
+mos-contract-probe.bin
+mos-contract-probe.bin
+```
+
+The first invocation reports `WRITE-PHASE-CREATE` and `CONTRACT-PASS`. The second
+reports the number-extraction failure, `WRITE-PHASE-VERIFY` and
+`CONTRACT-FAILED`; MOS then prints `Invalid command` for the probe's nonzero
+return. Reproduction is unchanged with zero-filled versus normal initial RAM,
+or command names with versus without `.bin`. The numeric assertion uses a small
+isolated function, input `"12345"`, flags zero, initially null end pointer and
+initially zero result. It expects `FR_OK`, value 12345 and an end pointer five
+characters past the start.
+
+Source inspection suggests a stale-state lead: `mos_api_extractnumber` passes
+`_scratchpad + 3` as `char **end` without initializing that scratchpad slot;
+`extractNumber` reads `*end` to decide whether an explicit endpoint was supplied.
+The assembly API documents the endpoint as an output, and the SDK wrapper
+does not pass the caller's initially null end-pointer value into this slot.
+This is a hypothesis requiring a minimized state/trace experiment, not a
+confirmed root cause or an authorized firmware correction. It may also explain
+the older frame-sensitivity observation in the probe README, but that connection
+is not yet proven.
+
+The normal automated contract remains a **two-cold-boot** test, and passes for
+both images. Changing manual review to match that scope does not fix or waive
+this separate repeated-run failure. The first manual review additionally used
+an incorrectly nested `/native-api` fixture; its path/file failures are a
+separate staging error, not evidence of broken filesystem wrappers.
+
+Complete replay script, 16-case matrix, raw logs and corrected cold-boot checks
+are retained under `../worktrees/mos-build-005-validation/` and in the dedicated
+Oryx profile. No upstream issue was submitted, SDK changed, or MOS fix applied.

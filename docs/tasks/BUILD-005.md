@@ -8,7 +8,10 @@ identity, private GitHub creation and first foundation implementation tranche.
 EMOS adoption and deployment remain outside this tranche.
 
 Status: first authorized native-source/build/readability tranche implemented
-locally for review on 2026-10-15; runtime qualification/adoption not performed.
+on 2026-10-15; local source/helper commits and bounded offline/headless checks
+complete on 2026-10-16. Oryx graphical shell checks passed; corrected file tests
+pass unattended. Qualification acceptance, physical qualification and adoption
+remain open. [Validation report](../../research/build-005-validation-2026-10-16.md).
 Repository: `bgates747/agon-mos-agondev`, private; local `../agon-mos-agondev/`,
 relative to this repository root. Official history is pushed; native source is
 now committed locally as mechanical `a5fa859367998b05a8e4d17364d18d6b12b9607c`
@@ -105,8 +108,21 @@ no numeric allocation or silent renumbering is selected during validation.
    known tool limitations and respect human emulator/hardware gates.
    Partial: all 102,055 ROM bytes and 512 public symbols match; all 16 C objects
    match too. New migration/profile/comparison/source tests and shared provenance
-   checks pass. Human runtime qualification and broader regression review remain
+   checks pass. Physical qualification and broader regression review remain
    open, so this item is not marked complete.
+   Validation tranche: clean committed-source rebuild and input/provenance
+   audits pass; Oryx headless boot, safe-shell parity and formatter/C/RST/FatFS
+   persistence comparisons pass. Dedicated native-VDP GUI profile is staged
+    for human review. Human shell checks passed; the first API review failed
+    because its fixture was nested incorrectly and it requested repeated runs
+    in one boot. A corrected root-based, two-cold-boot profile passes bounded
+    CLI checks. The Author directed file testing to be unattended rather than
+    requiring a manual reboot drill; a fresh agent-run replay again passes both
+    firmware images and restores the exact fixture. No new graphical-profile
+    acceptance is claimed. The repeated-run number-extraction
+    failure also reproduces under official MOS (`MOS-EXTRACTNUMBER-001`);
+    no behavior correction was made. The inherited stock oversized-packet defect
+   and known objdump test failure remain explicit limits, not corrected passes.
 7. [ ] **B005-07** — Deliver an immutable foundation selection and complete
    source/build/evidence handoff to the EMOS owner. Agree tag/release naming and
    adoption scope; no unqualified dependency change or automatic deployment.
@@ -121,6 +137,9 @@ no numeric allocation or silent renumbering is selected during validation.
    Partial: local reusable migration, direct-build and exact-comparison tools
    are implemented/tested, using existing runtime/provenance/link authorities.
    Review/promotion and selection of any further BUILD-003/004 tooling remain.
+   Selected first-pass native migration/build/comparison helpers are promoted
+   in `6cbaf08b7dc4155a1428a83ad9dcb99ae8cbf847`; emulator review adapters and
+   results remain uncommitted pending human acceptance.
 10. [ ] **B005-10** — After qualification/adoption, update actual onboarding and
     build instructions to native-source development; retain historical
     translation/reproduction support. Record acceptance/disposition and update
