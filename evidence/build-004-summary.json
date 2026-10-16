@@ -1,0 +1,831 @@
+{
+  "schema": 1,
+  "task": "BUILD-004",
+  "source_pins": {
+    "stock": "8336409351ee5314e02801a7b72a4f1bb5282519",
+    "uart_head": "0e019586788922b13852d0760f96c7d391561b39",
+    "builder": "256280b618f9c3528c016dcbe60e27b0dd6f820c",
+    "uart_snapshot_sha256": "38321531d35faff356b065daab1b4ac64dea9a4acb4e3d1e0b72177937dacc9f",
+    "uart_snapshot_vs_head_differences": {},
+    "native_archive_hashes": {
+      "emos.tar": "0f1a03e55f98e740b10de88bfac1d804cdc3aa0eb089b2c685521a5611818675",
+      "stock.tar": "8b02e2345eb4f4e40d1b83077d13d39cf1d22979bf40e2c0d5e483ca75e78cf5",
+      "uart.tar": "0b8a70f96b5b74e300cc9b9cae1e262718532b43e8b2713112244b2fbd47f81f"
+    },
+    "matched_emos_archive_sha256": "75ac7d35201170163b773611c216f4b3e0ea05de8d51ebd5ee55f123d02119c5",
+    "matched_emos_inventory_sha256": "cd7d0a09505e2ec23d66a5ecc2ed63137cb3d658e7bded735a690eaafe9ad3a3"
+  },
+  "emos_source": "cf10f0b1848346bc5d04056e4663bbbc166b2480",
+  "uart_features": "ABI1.2 native OTIRX and batching 1/2/4/8/16, default1",
+  "tools": {
+    "agondev_bin": {
+      "ez80-none-elf-ar": "c1089fde6f25d0833e206bb59a5e12a7810d509fb037cb3352182eb0c2fd3365",
+      "ez80-none-elf-c++filt": "f33ea9825a902f4fa1066345689b6474ed559005b37f42b2fe761acc1f1887cc",
+      "ez80-none-elf-elfedit": "c341b2e3edeed09333eb844f83e3390fff68e671d9fbb086e96d114732a5c35b",
+      "ez80-none-elf-ld": "8941596adea72c999d20c94938cc61c969731367367110a1c1f6cb9826ba0e23",
+      "ez80-none-elf-strip": "86fffa2465f14dff93cfa78cbf7866b4e0375adc2d216cd853e1a3f8a6abb9ef",
+      "ez80-none-elf-readelf": "6fc12fcedb700737eea0e992f9204393c306e296f33a0f9e3b244c1fa933975b",
+      "ez80-none-elf-clang": "b26b8b361834c7af13d272408efafd350cf8d6493c89e50cecd73f9d9e70a220",
+      "agondev-config": "b1a926e5c98272484ab1388f9f9cdbb538e79ef589cf997c2f1e6d1c55246e2b",
+      "ez80-none-elf-strings": "cbdf74fc5f3a9f2bfdb40896367598f9498aa2c250163371d2648953b69a9c32",
+      "agondev-setname": "bbd44ff30e8543768148fd1b6c218fe3ca89f00925a9bf70f234400160c05e38",
+      "ez80-none-elf-ld.bfd": "8941596adea72c999d20c94938cc61c969731367367110a1c1f6cb9826ba0e23",
+      "ez80-none-elf-objcopy": "fab59eb81d6eccea70eaf1733176a16d46452eec77744e73b3fe674c38a84ad1",
+      "ez80-none-elf-as": "1ee23e5551998d5fe0d2e7dcdf0fa6916342fc2d2c973b467e174ba679509097",
+      "ez80-none-elf-addr2line": "a27401ddb4ceb45b6981ee3489bffacdb43b3cf35b71fbb0a62bfeb9fe01e6da",
+      "ez80-none-elf-nm": "a1e5d42c2716969bb7576052fce02b7005387c5efd4b3c5568a852973936ccf0",
+      "ez80-none-elf-gprof": "282649a17bb08ffff6fe27487536c7298e9f3f6fbb56749f2dc0e5a6d9f459ef",
+      "ez80-none-elf-size": "c2aacec68a6c2bff58af1da4e0b4e34f4b7ce7381bc946f7931975f7d92c9a22",
+      "hexload-send": "79e4e86cab733c70530e27916049760565dd069f0cc1fe0fd5a0d84e37840185",
+      "ez80-none-elf-ranlib": "c0db7987323a8db45ecaa62d4100c1216c293f057795eff2a7a134fbfaa2f712",
+      "ez80-none-elf-objdump": "57132e98247a43e0c3bb450ad986592e2c913d5de46bd9ae969ad9ce0310a48e"
+    },
+    "libagon_sha256": "5de7878342ab6780593fbf8d54d8005960e2471bd0e34c0e307fbcfe42fef28a",
+    "native_selected": {
+      "bin/ez80cc.exe": "94876f23571692c53548c4272f59afb465bc6d1bbe8bd73b4e6f0b1a08373770",
+      "bin/ez80asm.exe": "1c7bc7b33dade9bd56903ecf14b28b785af76f1bfca07dbfda93a4351d977887",
+      "bin/eZ80link.exe": "81840f631e8b33f366cc13a4316a9698ab56e13ffefce56f1f587ca36f866566",
+      "lib/std/chelp.lib": "a623cefc0091905c277bcd6b37c7aa42bcc1dc0400360e9c77462c49313dd91f",
+      "lib/std/crt.lib": "b2ca7ede1cd6aba31cf9ac3c122991ffa8769aa5ded6968578bd1aeb0901186c",
+      "lib/std/crtS.lib": "8508d77a026d85852d965135d5de99ae88976b27c9f69a9b2d8822b7f3f92881",
+      "lib/std/nokernel.lib": "0caef3ad36389ccf00183c4c69a88e7998a8b1b73ed3f942ecd3ca84c93d769e",
+      "lib/zilog/zsldevinitdummy.obj": "9c3246f2d405255be6901f31fd14527a22bebe02b6c8aa2ce9cc1b37723e76ac",
+      "launcher": "c114be069bb0645b893a03971919e1af954c33eb835cbf62975c247d414e776f"
+    },
+    "native_inventory_sha256": "2ee219f03c61b5bfc529082d0675ada12494040e9d67dc4a921aaa22f6951372",
+    "wine": "wine-10.0 (Ubuntu 10.0~repack-12ubuntu1)"
+  },
+  "builds": {
+    "stock-zds-speed": {
+      "toolchain": "zds",
+      "profile": "speed",
+      "module_load_bytes": 108341,
+      "categories": {
+        "runtime": 5024,
+        "source": 103317
+      },
+      "parts": {
+        "code": 97219,
+        "data": 959,
+        "rodata": 10163
+      },
+      "ram_module_bytes": 3029,
+      "ram_extent": 3029,
+      "ram_parts": {
+        "BSS": 1878,
+        "DATA": 959,
+        "IVJMPTBL": 192
+      },
+      "headroom": 22582,
+      "returncode": 0,
+      "binary_sha256": "eb52ca84daabea21cc784f0a36c819149f2f6886743c0c0ff6be5af79500e9d1",
+      "map_sha256": "ab8871d80f79b19cacccf2b715f9c4d5939229366a48db398f567e259aec62d1",
+      "elapsed_seconds": 33.679134655278176,
+      "rom_extent": 108490,
+      "explicit_hex_bytes": 108270,
+      "hex_holes": 220
+    },
+    "stock-zds-size": {
+      "toolchain": "zds",
+      "profile": "size",
+      "module_load_bytes": 104649,
+      "categories": {
+        "runtime": 5216,
+        "source": 99433
+      },
+      "parts": {
+        "code": 93527,
+        "data": 959,
+        "rodata": 10163
+      },
+      "ram_module_bytes": 3029,
+      "ram_extent": 3029,
+      "ram_parts": {
+        "BSS": 1878,
+        "DATA": 959,
+        "IVJMPTBL": 192
+      },
+      "headroom": 26274,
+      "returncode": 0,
+      "binary_sha256": "ee5ae8e2f0dd088766368b0a5a3079e03f1e21ef1f6fbbfcccde8a0f7875453b",
+      "map_sha256": "14d082032023f47322cddb247f638f0b6d7ca9c0d97f6b4eacbb9652241c9542",
+      "elapsed_seconds": 30.837024530861527,
+      "rom_extent": 104798,
+      "explicit_hex_bytes": 104578,
+      "hex_holes": 220
+    },
+    "uart-zds-speed": {
+      "toolchain": "zds",
+      "profile": "speed",
+      "module_load_bytes": 110914,
+      "categories": {
+        "runtime": 5024,
+        "source": 105890
+      },
+      "parts": {
+        "code": 99792,
+        "data": 959,
+        "rodata": 10163
+      },
+      "ram_module_bytes": 3115,
+      "ram_extent": 3115,
+      "ram_parts": {
+        "BSS": 1964,
+        "DATA": 959,
+        "IVJMPTBL": 192
+      },
+      "headroom": 20009,
+      "returncode": 0,
+      "binary_sha256": "9a523c0fb7655e46297a5bc7586e53f9fdb536244f3407a265e87ce17f1cd907",
+      "map_sha256": "51ecdb2fdf6d97d066a33c980c6c3750542aa332766c38916e73f5822c15dc75",
+      "elapsed_seconds": 31.4100849959068,
+      "rom_extent": 111063,
+      "explicit_hex_bytes": 110843,
+      "hex_holes": 220
+    },
+    "uart-zds-size": {
+      "toolchain": "zds",
+      "profile": "size",
+      "module_load_bytes": 107222,
+      "categories": {
+        "runtime": 5216,
+        "source": 102006
+      },
+      "parts": {
+        "code": 96100,
+        "data": 959,
+        "rodata": 10163
+      },
+      "ram_module_bytes": 3115,
+      "ram_extent": 3115,
+      "ram_parts": {
+        "BSS": 1964,
+        "DATA": 959,
+        "IVJMPTBL": 192
+      },
+      "headroom": 23701,
+      "returncode": 0,
+      "binary_sha256": "372eee0bbbf897b78da12b4bfb9400b29c9bfd34f64969da27f2db2cac77fb9a",
+      "map_sha256": "7d27542eb3b00669b64321bc467baae8dd193878dc59424364c41966efbc46c8",
+      "elapsed_seconds": 31.47392924875021,
+      "rom_extent": 107371,
+      "explicit_hex_bytes": 107151,
+      "hex_holes": 220
+    },
+    "emos-zds-speed": {
+      "toolchain": "zds",
+      "profile": "speed",
+      "module_load_bytes": 138738,
+      "categories": {
+        "runtime": 5024,
+        "source": 133714
+      },
+      "parts": {
+        "code": 123853,
+        "data": 1009,
+        "rodata": 13876
+      },
+      "ram_module_bytes": 4345,
+      "ram_extent": 4345,
+      "ram_parts": {
+        "BSS": 3144,
+        "DATA": 1009,
+        "IVJMPTBL": 192
+      },
+      "headroom": -7815,
+      "returncode": 255,
+      "binary_sha256": "6d0cedf7ee8fe2d8df0dff63cbfa675961608445ed2e2f733b0fb7b0a4c74e91",
+      "map_sha256": "60e7f2ec217f3c6760a781aac624949c041b8288d72cc92a9491eca30179d15d",
+      "elapsed_seconds": 47.45221592905,
+      "rom_extent": 138887,
+      "explicit_hex_bytes": 138667,
+      "hex_holes": 220
+    },
+    "emos-zds-size": {
+      "toolchain": "zds",
+      "profile": "size",
+      "module_load_bytes": 134500,
+      "categories": {
+        "runtime": 5216,
+        "source": 129284
+      },
+      "parts": {
+        "code": 119615,
+        "data": 1009,
+        "rodata": 13876
+      },
+      "ram_module_bytes": 4345,
+      "ram_extent": 4345,
+      "ram_parts": {
+        "BSS": 3144,
+        "DATA": 1009,
+        "IVJMPTBL": 192
+      },
+      "headroom": -3577,
+      "returncode": 255,
+      "binary_sha256": "edfb9d33a2922e625d7fdd83d1d3e5f8964350ba5f40c04e6f0098abdfdc5d0b",
+      "map_sha256": "a617c3b7d47c83692a6c827ff3486856970b5b3b737f638fed55ed71ffa1adc8",
+      "elapsed_seconds": 44.6264410270378,
+      "rom_extent": 134649,
+      "explicit_hex_bytes": 134429,
+      "hex_holes": 220
+    },
+    "stock-agondev": {
+      "toolchain": "agondev",
+      "profile": "Oz-ff-Os",
+      "module_load_bytes": 101906,
+      "categories": {
+        "source": 96133,
+        "runtime": 5773
+      },
+      "parts": {
+        "code": 91903,
+        "rodata": 9268,
+        "data": 735
+      },
+      "ram_module_bytes": 2779,
+      "ram_extent": 2779,
+      "ram_parts": {
+        ".data": 735,
+        ".bss": 1852,
+        ".ivjmptbl": 192
+      },
+      "headroom": 29017,
+      "returncode": 0,
+      "binary_sha256": "f891721bbb2a0bc2845dbb13edbeb449365a315f11be48500d8e65e2ab1aebb4",
+      "map_sha256": "5c51043fdb5ee5618a0b94afafbc897106902287b0be272b9c381f4d98c99694",
+      "elapsed_seconds": 17.06708460720256,
+      "rom_extent": 102055,
+      "explicit_hex_bytes": 102055,
+      "hex_holes": 0
+    },
+    "uart-agondev": {
+      "toolchain": "agondev",
+      "profile": "Oz-ff-Os",
+      "module_load_bytes": 104479,
+      "categories": {
+        "source": 98706,
+        "runtime": 5773
+      },
+      "parts": {
+        "code": 94476,
+        "rodata": 9268,
+        "data": 735
+      },
+      "ram_module_bytes": 2865,
+      "ram_extent": 2865,
+      "ram_parts": {
+        ".data": 735,
+        ".bss": 1938,
+        ".ivjmptbl": 192
+      },
+      "headroom": 26444,
+      "returncode": 0,
+      "binary_sha256": "947d8072fe8a40e13c40c8f7e94f7091dc48bdc2dcf2ca10c5daf56692418a91",
+      "map_sha256": "92ecc741e9be1df24804b96207cd90f81a796d05050c24afd77b65bdddfa4f82",
+      "elapsed_seconds": 16.833634252194315,
+      "rom_extent": 104628,
+      "explicit_hex_bytes": 104628,
+      "hex_holes": 0
+    },
+    "emos-agondev": {
+      "toolchain": "agondev",
+      "profile": "Oz-ff-Os",
+      "module_load_bytes": 128473,
+      "categories": {
+        "source": 122700,
+        "runtime": 5773
+      },
+      "parts": {
+        "code": 115208,
+        "rodata": 12513,
+        "data": 752
+      },
+      "ram_module_bytes": 4065,
+      "ram_extent": 4065,
+      "ram_parts": {
+        ".data": 752,
+        ".bss": 3121,
+        ".ivjmptbl": 192
+      },
+      "headroom": 2450,
+      "returncode": 0,
+      "binary_sha256": "44d217b555f68a7d030bc0a89a2fa1d27f0fb537576f2925e90ef055b0a44d02",
+      "map_sha256": "7746c9b36944a7c74231e2e825e3ade21e31d5b698f38d8067e9309918f4623a",
+      "elapsed_seconds": 23.458883647806942,
+      "rom_extent": 128622,
+      "explicit_hex_bytes": 128622,
+      "hex_holes": 0
+    },
+    "emos-compatible-agondev": {
+      "toolchain": "agondev",
+      "profile": "Oz-ff-Os",
+      "module_load_bytes": 128425,
+      "categories": {
+        "source": 122652,
+        "runtime": 5773
+      },
+      "parts": {
+        "code": 115160,
+        "rodata": 12513,
+        "data": 752
+      },
+      "ram_module_bytes": 4065,
+      "ram_extent": 4065,
+      "ram_parts": {
+        ".data": 752,
+        ".bss": 3121,
+        ".ivjmptbl": 192
+      },
+      "headroom": 2498,
+      "returncode": 0,
+      "binary_sha256": "ddc306fc2b9f1a510e7f65cfc086ab43e4040119e7217ef4c105f5f04c7e0222",
+      "map_sha256": "f79aeaa800487484d5f5b3346f8a895ea848a8bf22d311766177e2da9c371f5c",
+      "elapsed_seconds": 23.54523731628433,
+      "rom_extent": 128574,
+      "explicit_hex_bytes": 128574,
+      "hex_holes": 0
+    }
+  },
+  "feature_deltas": {
+    "uart": {
+      "agondev": {
+        "rom_extent": 2573,
+        "module_load_bytes": 2573,
+        "ram_extent": 86,
+        "runtime_bytes": 0
+      },
+      "zds-speed": {
+        "rom_extent": 2573,
+        "module_load_bytes": 2573,
+        "ram_extent": 86,
+        "runtime_bytes": 0
+      },
+      "zds-size": {
+        "rom_extent": 2573,
+        "module_load_bytes": 2573,
+        "ram_extent": 86,
+        "runtime_bytes": 0
+      }
+    },
+    "emos": {
+      "agondev": {
+        "rom_extent": 26519,
+        "module_load_bytes": 26519,
+        "ram_extent": 1286,
+        "runtime_bytes": 0
+      },
+      "zds-speed": {
+        "rom_extent": 30397,
+        "module_load_bytes": 30397,
+        "ram_extent": 1316,
+        "runtime_bytes": 0
+      },
+      "zds-size": {
+        "rom_extent": 29851,
+        "module_load_bytes": 29851,
+        "ram_extent": 1316,
+        "runtime_bytes": 0
+      }
+    }
+  },
+  "installed_emos_over_stock_agondev": 26567,
+  "emos_matched_input_toolchain_delta": {
+    "speed": 10313,
+    "size": 6075
+  },
+  "uart_module_deltas": [
+    {
+      "module": "main",
+      "category": "source",
+      "zds": 4,
+      "agondev": 4
+    },
+    {
+      "module": "crash",
+      "category": "source",
+      "zds": 21,
+      "agondev": 21
+    },
+    {
+      "module": "interrupts",
+      "category": "source",
+      "zds": -22,
+      "agondev": -22
+    },
+    {
+      "module": "misc",
+      "category": "source",
+      "zds": 8,
+      "agondev": 8
+    },
+    {
+      "module": "mos_api",
+      "category": "source",
+      "zds": 14,
+      "agondev": 14
+    },
+    {
+      "module": "serial",
+      "category": "source",
+      "zds": 33,
+      "agondev": 33
+    },
+    {
+      "module": "uart0_async",
+      "category": "source",
+      "zds": 2497,
+      "agondev": 2497
+    },
+    {
+      "module": "vdp_protocol",
+      "category": "source",
+      "zds": 4,
+      "agondev": 4
+    },
+    {
+      "module": "vectors16",
+      "category": "source",
+      "zds": 14,
+      "agondev": 14
+    }
+  ],
+  "assembly": {
+    "stock": {
+      "method": "explicit-object-relocations-replayed-at-zds-addresses",
+      "map_sha256": "ab8871d80f79b19cacccf2b715f9c4d5939229366a48db398f567e259aec62d1",
+      "sections": [
+        {
+          "module": "crash",
+          "section": ".text",
+          "bytes": 549,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 34,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "gpio",
+          "section": ".STARTUP",
+          "bytes": 359,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 11,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "interrupts",
+          "section": ".STARTUP",
+          "bytes": 367,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 58,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "keyboard",
+          "section": ".STARTUP",
+          "bytes": 1068,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 154,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "misc",
+          "section": ".STARTUP",
+          "bytes": 241,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 3,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "mos_api",
+          "section": ".STARTUP",
+          "bytes": 2701,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 452,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "rtc",
+          "section": ".STARTUP",
+          "bytes": 9,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 1,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "sd",
+          "section": ".text",
+          "bytes": 849,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 56,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "serial",
+          "section": ".STARTUP",
+          "bytes": 235,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 12,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "spi",
+          "section": ".text",
+          "bytes": 270,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 1,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "vdp_protocol",
+          "section": ".STARTUP",
+          "bytes": 493,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 96,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "cstartup",
+          "section": ".STARTUP",
+          "bytes": 78,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 14,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "init_params_f92",
+          "section": ".STARTUP",
+          "bytes": 303,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 28,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "vectors16",
+          "section": ".RESET",
+          "bytes": 36,
+          "native_implicit_bytes_excluded": 71,
+          "relocations": 6,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "vectors16",
+          "section": ".STARTUP",
+          "bytes": 162,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 15,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "vectors16",
+          "section": ".IVECTS",
+          "bytes": 288,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 96,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        }
+      ],
+      "all_match": true,
+      "bytes_checked": 8008,
+      "relocations_replayed": 1037
+    },
+    "uart": {
+      "method": "explicit-object-relocations-replayed-at-zds-addresses",
+      "map_sha256": "51ecdb2fdf6d97d066a33c980c6c3750542aa332766c38916e73f5822c15dc75",
+      "sections": [
+        {
+          "module": "crash",
+          "section": ".text",
+          "bytes": 570,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 37,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "gpio",
+          "section": ".STARTUP",
+          "bytes": 359,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 11,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "interrupts",
+          "section": ".STARTUP",
+          "bytes": 345,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 56,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "keyboard",
+          "section": ".STARTUP",
+          "bytes": 1068,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 154,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "misc",
+          "section": ".STARTUP",
+          "bytes": 249,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 5,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "mos_api",
+          "section": ".STARTUP",
+          "bytes": 2715,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 456,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "rtc",
+          "section": ".STARTUP",
+          "bytes": 9,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 1,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "sd",
+          "section": ".text",
+          "bytes": 849,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 56,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "serial",
+          "section": ".STARTUP",
+          "bytes": 268,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 19,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "spi",
+          "section": ".text",
+          "bytes": 270,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 1,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "uart0_async",
+          "section": ".STARTUP",
+          "bytes": 2497,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 300,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "vdp_protocol",
+          "section": ".STARTUP",
+          "bytes": 497,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 97,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "cstartup",
+          "section": ".STARTUP",
+          "bytes": 78,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 14,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "init_params_f92",
+          "section": ".STARTUP",
+          "bytes": 303,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 28,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "vectors16",
+          "section": ".RESET",
+          "bytes": 36,
+          "native_implicit_bytes_excluded": 71,
+          "relocations": 6,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "vectors16",
+          "section": ".STARTUP",
+          "bytes": 176,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 18,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        },
+        {
+          "module": "vectors16",
+          "section": ".IVECTS",
+          "bytes": 288,
+          "native_implicit_bytes_excluded": 0,
+          "relocations": 96,
+          "match": true,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        }
+      ],
+      "all_match": true,
+      "bytes_checked": 10577,
+      "relocations_replayed": 1355
+    }
+  },
+  "qualification": {
+    "emulator_run": false,
+    "hardware_run": false,
+    "new_product_promotion": false,
+    "known_test_failures": [
+      "bundled objdump backward-JR display mismatch",
+      "stock-only corpus counts when run against extended UART fixture"
+    ],
+    "comparison_tests": 11,
+    "diagnostic_tests": 7,
+    "source_profile_tests": 4,
+    "stock_frontend_tests": {
+      "run": 24,
+      "passed": 23,
+      "failed": 1
+    }
+  },
+  "emos_plus_uart": {
+    "status": "not_implemented",
+    "stage4_authorized": false
+  },
+  "supporting_sha256": {
+    "matrix.json": "745daeed537f7ce5c0e0e819b0f94e19886d5376bb783f6851971f3dca586732",
+    "assembly-rebase.json": "0f6e809deadb6c4e6c42a682619fed0baeb6a26fd9b0f016bcc19bc840ef683f",
+    "uart-module-deltas.json": "8b3fe8624705df41f05f2420c17b273dbb1f1c3d89214497f637d0fa42384d16",
+    "tools.json": "9cf330c8c41902166ccebf56d44f6ba593cfede68b6f9835f38d0a2c42722b7a",
+    "result.json": "ef6a508c098ec32201e87b332920ee8b311c427484c536144c4b49497a430415"
+  }
+}

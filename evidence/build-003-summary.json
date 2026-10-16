@@ -1,0 +1,709 @@
+{
+  "assembly": {
+    "all_module_sizes_match": true,
+    "bytes": 9702,
+    "modules": 17,
+    "semantic_equivalence_not_claimed": true
+  },
+  "builder_commit": "90034c2348761c42bab4217ce5b0f906922dc0e4",
+  "clang_assembly_files_captured": 27,
+  "compiler": {
+    "agondev": "Clang 15.0.7",
+    "llvm_revision": "c76386c0083e6a6236ff774275227e2389f85538",
+    "zds": "ZDS II eZ80Acclaim! 5.3.5; C compiler 3.4; linker 6.25 (19073001)"
+  },
+  "controlled_delta": {
+    "ZDS_compatibility_edit_correction": 48,
+    "extent_delta": 6075,
+    "identity_correction": -14,
+    "matched_ZDS_edits_agondev_extent": 128574,
+    "matched_identity_zds_extent": 134649
+  },
+  "date": "2026-10-15",
+  "experiments": [
+    {
+      "analysis_binary_sha256": "7f784207941792da9a1ddfd63e251f1a278f3b9cb810c49f386476b5709f3526",
+      "behavior_qualified": false,
+      "capacity_minus_extent": -3591,
+      "hex_sha256": "d43f28794a12b91645cc3576d82bfd57aa8760499d1fc668cd94303995a5d402",
+      "id": "zds-reproduced",
+      "image_extent": 134663,
+      "link_passed": false,
+      "map_sha256": "c70756c4b8e9d0a37f8165a23c018dd3b3a7e894bbc080009c12cbfa932083a1",
+      "rom_used": 134514
+    },
+    {
+      "analysis_binary_sha256": "edfb9d33a2922e625d7fdd83d1d3e5f8964350ba5f40c04e6f0098abdfdc5d0b",
+      "behavior_qualified": false,
+      "capacity_minus_extent": -3577,
+      "hex_sha256": "960d1866ffda800395b2e7b6a821b143a0019558ef033e39ef71daf66170ac08",
+      "id": "zds-matched",
+      "image_extent": 134649,
+      "link_passed": false,
+      "map_sha256": "ff445957e0ee30e95d6fc013999b7d1bc09a5329eb69e8399b559a1b7bad62ee",
+      "rom_used": 134500
+    },
+    {
+      "analysis_binary_sha256": "bf0e4641915b22a61114499295ffc6b5bf23db405e587c9a6c7713d8015df00f",
+      "behavior_qualified": false,
+      "capacity_minus_extent": -1174,
+      "hex_sha256": "e1c766bbc0c0494deaae3614d39fb02ac230b76464215456dd805cf4365e7591",
+      "id": "zds-nogenprintf-dummy",
+      "image_extent": 132246,
+      "link_passed": false,
+      "map_sha256": "276416337e7887f4cbc7526cc9faa70a4f99f14f4e7439225f6143101ad506d0",
+      "rom_used": 132097
+    },
+    {
+      "analysis_binary_sha256": "a62c3d3ec4d77926c8abb1c6d76a0766d1db1981d7952f827df51227d1820ee2",
+      "behavior_qualified": false,
+      "capacity_minus_extent": 1028,
+      "hex_sha256": "6be6cf1147d6aa68dec5b8e2d9e5874f71fdcbe0cd193de7fa6e5fbc182db5ed",
+      "id": "zds-pool-dummy",
+      "image_extent": 130044,
+      "link_passed": true,
+      "map_sha256": "3a6adc431d0737735a6018c400e1403290d8ef8d543f329de54638e134113794",
+      "rom_used": 129895
+    }
+  ],
+  "groups": {
+    "runtime": {
+      "agondev": 5773,
+      "zds": 5216
+    },
+    "source": {
+      "agondev": 122700,
+      "zds": 129298
+    }
+  },
+  "installed_payload": {
+    "sha256": "44d217b555f68a7d030bc0a89a2fa1d27f0fb537576f2925e90ef055b0a44d02",
+    "size": 128622
+  },
+  "installed_readback": {
+    "sha256": "6f83bc21558ea7dcb665b60c18aa3a5c3030367f901e3e32ccbbf99eaf7f4019",
+    "size": 131072
+  },
+  "limitations": [
+    "Module attribution closes the byte accounting, not proof of each compiler transformation or semantic equivalence.",
+    "Generated CODE labels and ELF function sizes differ with compiler inlining; individual function spans are diagnostic.",
+    "Pooled assembly is an analysis experiment, not maintained source or a qualified firmware release.",
+    "fpdumy supplies RET stubs for floating operations; non-floating formatter policy and runtime behavior need review.",
+    "No hardware, deployment, resets, bench services, or startup files were accessed."
+  ],
+  "original_delta": {
+    "accounting_adjustment": -149,
+    "image_extent_delta": 6041,
+    "reported_mixed_accounting": 5892,
+    "runtime_delta": -557,
+    "source_module_delta": 6598,
+    "unattributed_bytes": 0
+  },
+  "paired_generated_C_code_labels": 394,
+  "recommendation_measurements": {
+    "NOgenprintf_with_fpdumy_saving": 2403,
+    "combined_extent": 130044,
+    "combined_headroom": 1028,
+    "combined_saving": 4605,
+    "literal_pool_saving": 2202
+  },
+  "reproduction": {
+    "matching_C_and_formatter_objects": 27,
+    "matching_ELF": true,
+    "matching_assembly_objects": 20,
+    "matching_binary": true,
+    "matching_commands": 48
+  },
+  "schema": 1,
+  "sections": {
+    "agondev": {
+      "code": 115208,
+      "data": 752,
+      "rodata": 12513
+    },
+    "zds": {
+      "code": 119615,
+      "data": 1009,
+      "rodata": 13890
+    }
+  },
+  "source_commit": "cf10f0b1848346bc5d04056e4663bbbc166b2480",
+  "source_modules": [
+    {
+      "agondev": {
+        "code": 21970,
+        "data": 634,
+        "rodata": 7744
+      },
+      "agondev_total": 30348,
+      "category": "source",
+      "delta_zds_minus_agondev": 4964,
+      "module": "mos",
+      "zds": {
+        "code": 25595,
+        "data": 748,
+        "rodata": 8969
+      },
+      "zds_total": 35312
+    },
+    {
+      "agondev": {
+        "code": 6745,
+        "rodata": 46
+      },
+      "agondev_total": 6791,
+      "category": "source",
+      "delta_zds_minus_agondev": 1029,
+      "module": "mos_sysvars",
+      "zds": {
+        "code": 7765,
+        "data": 6,
+        "rodata": 49
+      },
+      "zds_total": 7820
+    },
+    {
+      "agondev": {
+        "code": 4520,
+        "rodata": 226
+      },
+      "agondev_total": 4746,
+      "category": "source",
+      "delta_zds_minus_agondev": 652,
+      "module": "mos_editor",
+      "zds": {
+        "code": 5355,
+        "rodata": 43
+      },
+      "zds_total": 5398
+    },
+    {
+      "agondev": {
+        "code": 2195,
+        "rodata": 1022
+      },
+      "agondev_total": 3217,
+      "category": "source",
+      "delta_zds_minus_agondev": 596,
+      "module": "emos_uart_probe",
+      "zds": {
+        "code": 2409,
+        "rodata": 1404
+      },
+      "zds_total": 3813
+    },
+    {
+      "agondev": {
+        "code": 1834,
+        "rodata": 94
+      },
+      "agondev_total": 1928,
+      "category": "source",
+      "delta_zds_minus_agondev": 453,
+      "module": "emos_console",
+      "zds": {
+        "code": 2287,
+        "rodata": 94
+      },
+      "zds_total": 2381
+    },
+    {
+      "agondev": {
+        "code": 5965,
+        "rodata": 941
+      },
+      "agondev_total": 6906,
+      "category": "source",
+      "delta_zds_minus_agondev": 439,
+      "module": "emos",
+      "zds": {
+        "code": 6309,
+        "data": 3,
+        "rodata": 1033
+      },
+      "zds_total": 7345
+    },
+    {
+      "agondev": {
+        "code": 769,
+        "data": 114,
+        "rodata": 278
+      },
+      "agondev_total": 1161,
+      "category": "source",
+      "delta_zds_minus_agondev": 431,
+      "module": "clock",
+      "zds": {
+        "code": 1253,
+        "data": 114,
+        "rodata": 225
+      },
+      "zds_total": 1592
+    },
+    {
+      "agondev": {
+        "code": 1257
+      },
+      "agondev_total": 1257,
+      "category": "source",
+      "delta_zds_minus_agondev": 397,
+      "module": "emos_sdlink",
+      "zds": {
+        "code": 1654
+      },
+      "zds_total": 1654
+    },
+    {
+      "agondev": {
+        "code": 3284
+      },
+      "agondev_total": 3284,
+      "category": "source",
+      "delta_zds_minus_agondev": 356,
+      "module": "umm_malloc",
+      "zds": {
+        "code": 3640
+      },
+      "zds_total": 3640
+    },
+    {
+      "agondev": {
+        "code": 3034,
+        "data": 4
+      },
+      "agondev_total": 3038,
+      "category": "source",
+      "delta_zds_minus_agondev": 341,
+      "module": "emos_admission",
+      "zds": {
+        "code": 3375,
+        "data": 4
+      },
+      "zds_total": 3379
+    },
+    {
+      "agondev": {
+        "code": 2760
+      },
+      "agondev_total": 2760,
+      "category": "source",
+      "delta_zds_minus_agondev": 340,
+      "module": "emos_keyboard",
+      "zds": {
+        "code": 3096,
+        "rodata": 4
+      },
+      "zds_total": 3100
+    },
+    {
+      "agondev": {
+        "code": 1256,
+        "rodata": 12
+      },
+      "agondev_total": 1268,
+      "category": "source",
+      "delta_zds_minus_agondev": 282,
+      "module": "emos_parallel",
+      "zds": {
+        "code": 1538,
+        "rodata": 12
+      },
+      "zds_total": 1550
+    },
+    {
+      "agondev": {
+        "code": 1085
+      },
+      "agondev_total": 1085,
+      "category": "source",
+      "delta_zds_minus_agondev": 219,
+      "module": "strings",
+      "zds": {
+        "code": 1304
+      },
+      "zds_total": 1304
+    },
+    {
+      "agondev": {
+        "code": 1092
+      },
+      "agondev_total": 1092,
+      "category": "source",
+      "delta_zds_minus_agondev": 219,
+      "module": "uart",
+      "zds": {
+        "code": 1303,
+        "rodata": 8
+      },
+      "zds_total": 1311
+    },
+    {
+      "agondev": {
+        "code": 1045,
+        "rodata": 137
+      },
+      "agondev_total": 1182,
+      "category": "source",
+      "delta_zds_minus_agondev": 190,
+      "module": "main",
+      "zds": {
+        "code": 1245,
+        "rodata": 127
+      },
+      "zds_total": 1372
+    },
+    {
+      "agondev": {
+        "code": 1398
+      },
+      "agondev_total": 1398,
+      "category": "source",
+      "delta_zds_minus_agondev": 164,
+      "module": "emos_parallel_engine",
+      "zds": {
+        "code": 1562
+      },
+      "zds_total": 1562
+    },
+    {
+      "agondev": {
+        "code": 1044,
+        "rodata": 687
+      },
+      "agondev_total": 1731,
+      "category": "source",
+      "delta_zds_minus_agondev": 102,
+      "module": "emos_uart_flow",
+      "zds": {
+        "code": 1120,
+        "rodata": 713
+      },
+      "zds_total": 1833
+    },
+    {
+      "agondev": {
+        "code": 627,
+        "rodata": 969
+      },
+      "agondev_total": 1596,
+      "category": "source",
+      "delta_zds_minus_agondev": 102,
+      "module": "ffunicode",
+      "zds": {
+        "code": 756,
+        "rodata": 942
+      },
+      "zds_total": 1698
+    },
+    {
+      "agondev": {
+        "code": 580
+      },
+      "agondev_total": 580,
+      "category": "source",
+      "delta_zds_minus_agondev": 93,
+      "module": "diskio",
+      "zds": {
+        "code": 670,
+        "data": 3
+      },
+      "zds_total": 673
+    },
+    {
+      "agondev": {
+        "code": 179
+      },
+      "agondev_total": 179,
+      "category": "source",
+      "delta_zds_minus_agondev": 57,
+      "module": "timer",
+      "zds": {
+        "code": 236
+      },
+      "zds_total": 236
+    },
+    {
+      "agondev": {
+        "code": 549
+      },
+      "agondev_total": 549,
+      "category": "source",
+      "delta_zds_minus_agondev": 0,
+      "module": "crash",
+      "zds": {
+        "code": 549
+      },
+      "zds_total": 549
+    },
+    {
+      "agondev": {
+        "code": 78
+      },
+      "agondev_total": 78,
+      "category": "source",
+      "delta_zds_minus_agondev": 0,
+      "module": "cstartup",
+      "zds": {
+        "code": 78
+      },
+      "zds_total": 78
+    },
+    {
+      "agondev": {
+        "code": 22
+      },
+      "agondev_total": 22,
+      "category": "source",
+      "delta_zds_minus_agondev": 0,
+      "module": "emos_console_io",
+      "zds": {
+        "code": 22
+      },
+      "zds_total": 22
+    },
+    {
+      "agondev": {
+        "code": 716
+      },
+      "agondev_total": 716,
+      "category": "source",
+      "delta_zds_minus_agondev": 0,
+      "module": "emos_keyboard_io",
+      "zds": {
+        "code": 716
+      },
+      "zds_total": 716
+    },
+    {
+      "agondev": {
+        "code": 393
+      },
+      "agondev_total": 393,
+      "category": "source",
+      "delta_zds_minus_agondev": 0,
+      "module": "emos_parallel_io",
+      "zds": {
+        "code": 393
+      },
+      "zds_total": 393
+    },
+    {
+      "agondev": {
+        "code": 359
+      },
+      "agondev_total": 359,
+      "category": "source",
+      "delta_zds_minus_agondev": 0,
+      "module": "gpio",
+      "zds": {
+        "code": 359
+      },
+      "zds_total": 359
+    },
+    {
+      "agondev": {
+        "code": 303
+      },
+      "agondev_total": 303,
+      "category": "source",
+      "delta_zds_minus_agondev": 0,
+      "module": "init_params_f92",
+      "zds": {
+        "code": 303
+      },
+      "zds_total": 303
+    },
+    {
+      "agondev": {
+        "code": 391
+      },
+      "agondev_total": 391,
+      "category": "source",
+      "delta_zds_minus_agondev": 0,
+      "module": "interrupts",
+      "zds": {
+        "code": 391
+      },
+      "zds_total": 391
+    },
+    {
+      "agondev": {
+        "code": 1071
+      },
+      "agondev_total": 1071,
+      "category": "source",
+      "delta_zds_minus_agondev": 0,
+      "module": "keyboard",
+      "zds": {
+        "code": 1071
+      },
+      "zds_total": 1071
+    },
+    {
+      "agondev": {
+        "code": 241
+      },
+      "agondev_total": 241,
+      "category": "source",
+      "delta_zds_minus_agondev": 0,
+      "module": "misc",
+      "zds": {
+        "code": 241
+      },
+      "zds_total": 241
+    },
+    {
+      "agondev": {
+        "code": 2761
+      },
+      "agondev_total": 2761,
+      "category": "source",
+      "delta_zds_minus_agondev": 0,
+      "module": "mos_api",
+      "zds": {
+        "code": 2761
+      },
+      "zds_total": 2761
+    },
+    {
+      "agondev": {
+        "code": 9
+      },
+      "agondev_total": 9,
+      "category": "source",
+      "delta_zds_minus_agondev": 0,
+      "module": "rtc",
+      "zds": {
+        "code": 9
+      },
+      "zds_total": 9
+    },
+    {
+      "agondev": {
+        "code": 849
+      },
+      "agondev_total": 849,
+      "category": "source",
+      "delta_zds_minus_agondev": 0,
+      "module": "sd",
+      "zds": {
+        "code": 819,
+        "rodata": 30
+      },
+      "zds_total": 849
+    },
+    {
+      "agondev": {
+        "code": 501
+      },
+      "agondev_total": 501,
+      "category": "source",
+      "delta_zds_minus_agondev": 0,
+      "module": "serial",
+      "zds": {
+        "code": 501
+      },
+      "zds_total": 501
+    },
+    {
+      "agondev": {
+        "code": 270
+      },
+      "agondev_total": 270,
+      "category": "source",
+      "delta_zds_minus_agondev": 0,
+      "module": "spi",
+      "zds": {
+        "code": 270
+      },
+      "zds_total": 270
+    },
+    {
+      "agondev": {
+        "code": 639
+      },
+      "agondev_total": 639,
+      "category": "source",
+      "delta_zds_minus_agondev": 0,
+      "module": "vdp_protocol",
+      "zds": {
+        "code": 639
+      },
+      "zds_total": 639
+    },
+    {
+      "agondev": {
+        "code": 550
+      },
+      "agondev_total": 550,
+      "category": "source",
+      "delta_zds_minus_agondev": 0,
+      "module": "vectors16",
+      "zds": {
+        "code": 550
+      },
+      "zds_total": 550
+    },
+    {
+      "agondev": {
+        "code": 733
+      },
+      "agondev_total": 733,
+      "category": "source",
+      "delta_zds_minus_agondev": -47,
+      "module": "i2c",
+      "zds": {
+        "code": 686
+      },
+      "zds_total": 686
+    },
+    {
+      "agondev": {
+        "code": 5776,
+        "rodata": 80
+      },
+      "agondev_total": 5856,
+      "category": "source",
+      "delta_zds_minus_agondev": -1429,
+      "module": "mos_file",
+      "zds": {
+        "code": 4374,
+        "rodata": 53
+      },
+      "zds_total": 4427
+    },
+    {
+      "agondev": {
+        "code": 30639,
+        "rodata": 223
+      },
+      "agondev_total": 30862,
+      "category": "source",
+      "delta_zds_minus_agondev": -3352,
+      "module": "ff",
+      "zds": {
+        "code": 27326,
+        "rodata": 184
+      },
+      "zds_total": 27510
+    }
+  ],
+  "supporting_records": {
+    "agondev-code-inspection-03/commands.json": "b0e48f60c0cbe495ff8e3532da21137abe824e230f9c8b51dafd1b87a01e041a",
+    "formatter-inventory.json": "00c201e61e847063ffc60c3d8058f96f2f83f222bdaca8fa55e3a970677ff8f7",
+    "function-accounting-nogenprintf.json": "b02b0c9632c1a4e19ab7e60997a44d236dc6af418f0e68a2587818a7c3a468a9",
+    "function-accounting.json": "ccce5738bb035f79bdc0d1424250fa9fbe34488ea2b6c1d49a1b065487ef57b8",
+    "input-verification.json": "fb0de05403297d21e9744d89159ba85dd25319801778da302988e502a82869f8",
+    "layout-accounting.json": "3d3ba29e7ce41ccbee765830bab123e630fa6276f9557b0b839217c2f4d8541f",
+    "size-accounting-matched.json": "edbb49cd2493261c047c18dd4b8612ea65881e5f556f39bba86157187bafd40d",
+    "size-accounting-nogenprintf-dummy.json": "4da24d1b28d4a83eea7e2d8cee4beeda3069170239656930913f9fd0e17a463d",
+    "size-accounting-pool-dummy.json": "ac4945d418265b259881cb83572a2046d30624bf2a102824b73ca748ce6c716e",
+    "size-accounting-reproduced.json": "bb1abe2e93185358c1491c404229b185fccf79fc684e3092c19db3f237136772",
+    "size-accounting-zds-edits.json": "0ddd4b465ffbb0012b65731fd705466f2c53832a52c4b4a8ef839bfa653aa71d",
+    "size-accounting.json": "c37b11bd3cc3afc8f813c6602563935da80862c322315435307c5551cd22a664",
+    "string-accounting.json": "e2dbce68727fe7e5ff00a802125e5dbb4dded12f366fd6c41db281c6fca28b02"
+  },
+  "task": "BUILD-003",
+  "task_checkout_commit": "256280b",
+  "upstream_control_commit": "8336409351ee5314e02801a7b72a4f1bb5282519"
+}

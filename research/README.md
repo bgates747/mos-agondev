@@ -15,6 +15,14 @@ Current onboarding lives in `README.md` and `STARTHERE.md`. Current technical
 contracts are indexed by `docs/README.md`. The only unfinished-work list is
 `TODO.md`. Machine-readable frozen measurements remain under `evidence/`.
 
+## Later build investigations
+
+1. [Pinned EMOS compiler-size analysis](build-003-2026-10-15.md) reproduces
+   installed inputs and measures separate native compaction experiments.
+2. [Stock MOS, EMOS and UART matrix](build-004-2026-10-15.md) separates
+   source-feature costs from compiler/profile costs; EMOS-UART integration is
+   still absent. Qualification boundaries and remaining work are in `TODO.md`.
+
 ## Exact baseline reproduction
 
 `make baseline-check` compares configured inputs and generated probes with

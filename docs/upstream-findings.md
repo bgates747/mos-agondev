@@ -163,3 +163,47 @@ For an upstream report, link or attach this file together with
 `projects/contract-probe/WRAPPER_AUDIT.md`. The latter defines the structural
 audit boundary and prevents the three confirmed defects from being mistaken
 for a claim that every libmos wrapper has been semantically qualified.
+
+## AgonDev bundled disassembler: backward relative targets
+
+### AGONDEV-BINUTILS-001 — Backward JR target is displayed 256 bytes too high
+
+BUILD-004 independently reproduced this in the retained ARM64
+`ez80-none-elf-objdump`, identifying itself as GNU Binutils 2.45. Executable
+SHA-256: `57132e98247a43e0c3bb450ad986592e2c913d5de46bd9ae969ad9ce0310a48e`.
+This tool receipt is separate from the older public pins at the top of this
+document. Attribution to a particular upstream Binutils/AgonDev source commit
+has not been established, and no upstream fix or report submission is claimed.
+
+Minimal assembler input:
+
+```asm
+.assume adl=1
+.text
+.space 8,0
+target:
+    nop
+    jr target
+```
+
+Assemble using `ez80-none-elf-as -march=ez80+full+adl`, then inspect with
+`ez80-none-elf-objdump -s -d`. The instruction at address 9 is correctly encoded
+`18 FD`: signed displacement −3 means `9 + 2 − 3 = 8`. The disassembler prints:
+
+```text
+   9: 18 fd    jr 0x0108
+```
+
+Expected target is `0x0008`. The existing anonymous-label object test therefore
+fails its disassembly-text assertion despite correct output bytes. This is a
+diagnostic/display defect in the measured tool, not evidence that GNU as emits
+the wrong branch. Wider scope (other instructions/modes/boundaries) is not yet
+qualified.
+
+Retained minimal fixture, complete command/output receipts and encoding
+regression are indexed in the
+[BUILD-004 report](../research/build-004-2026-10-15.md). Its assembly comparison
+replays explicit ELF relocations and compares bytes, avoiding reliance on this
+display. Do not accept a wrong displayed target merely to make tests pass.
+A future corrected tool must pass the minimal fixture and affected regression
+before relying on its backward-target disassembly for analysis.
