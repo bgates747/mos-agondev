@@ -7,11 +7,16 @@ accepted this direction on 2026-10-15 and subsequently approved the repository
 identity, private GitHub creation and first foundation implementation tranche.
 EMOS adoption and deployment remain outside this tranche.
 
-Status: guidance recorded and contract v1 mutually accepted on 2026-10-15.
+Status: first authorized native-source/build/readability tranche implemented
+locally for review on 2026-10-15; runtime qualification/adoption not performed.
 Repository: `bgates747/agon-mos-agondev`, private; local `../agon-mos-agondev/`,
-relative to this repository root. First implementation tranche is authorized.
+relative to this repository root. Official history is pushed; native source is
+now committed locally as mechanical `a5fa859367998b05a8e4d17364d18d6b12b9607c`
+then readability/direct-build `92662538a5766ae1e3d5b47e7dd78829a4dfe1c5`.
+These are candidate pins, not qualified release or downstream adoption. Result:
+[first-tranche report](../../research/build-005-2026-10-15.md).
 The authoritative work entry is in `TODO.md`; IDs below are permanent.
-Accepted policy: [native foundation guidance](../native-foundation-policy.md).
+Accepted policy: [project policies](../POLICIES.md).
 Cross-owner agreement: [central contract](../../../agon-dev-env/cross-agent/mos_agondev_foundation/CONTRACT.md).
 Measurements: [BUILD-003](../../research/build-003-2026-10-15.md) and
 [BUILD-004](../../research/build-004-2026-10-15.md).
@@ -43,6 +48,21 @@ release tagging, B005-07 qualified handoff or B005-08 EMOS adoption. Leave new
 implementation changes available for review; initial guidance/contract dirt is
 explicitly authorized for commit/push. Do not publish the new repository publicly.
 
+## Released validation tranche
+
+On 2026-10-16 the Author authorized the next recommended tranche: audit and
+commit the non-emulator native candidate/helpers, establish reproducible
+immutable candidate inputs, rerun offline checks, and prepare/run bounded
+runtime qualification. Prepare a stopped project-local human-review profile
+on Oryx Linux Lite. Emulator-coupled changes and results remain uncommitted
+until human review and explicit commit approval. No physical hardware,
+flashing, deployment to a board, EMOS adoption, UART integration, API-001
+implementation or qualified release tag is authorized by this tranche.
+
+Future identifier collision avoidance remains an API-001 design consideration:
+audit namespace usage and seek a coordinated extension range/discovery scheme;
+no numeric allocation or silent renumbering is selected during validation.
+
 ## Policy and ownership agreement
 
 1. [x] **B005-01** — Record the accepted toolchain, source-readability,
@@ -64,17 +84,29 @@ explicitly authorized for commit/push. Do not publish the new repository publicl
    controls. Use persistent isolated workspaces before reviewed promotion.
    Complete: Author accepted `agon-mos-agondev` locally under mystuff, authorized
    private GitHub creation and the bounded first tranche stated above.
-4. [ ] **B005-04** — Preserve official history and import provenance; establish
+4. [x] **B005-04** — Preserve official history and import provenance; establish
    the conversion-only native source and direct AgonDev build in the selected
    repository. Keep toolchain/runtime pins, conversion inputs and source maps.
-5. [ ] **B005-05** — Review and improve native-source readability: recognizable
+   Complete: private repository with official v3.0.2 ancestry,
+   maintained per-file source, direct build/profile, upstream file/line/symbol
+   receipts and pinned control. Author released source promotion on 2026-10-16;
+   the two separate local commits above preserve reviewable conversion stages.
+5. [x] **B005-05** — Review and improve native-source readability: recognizable
    modules/macros, descriptive private labels, native anonymous/macro-local
    idioms, focused upstream comments and a stable deviation register. Separate
    these edits from mechanical conversion and behavior fixes.
+   Complete for this tranche: separate mechanical/readability controls both
+   reproduce the reference. Native macros, descriptive `.L` labels, numeric
+   anonymous branches, invocation-local labels and 12 deviation IDs are retained.
+   No new behavior fix or UART/EMOS change was included.
 6. [ ] **B005-06** — Reproduce the selected translated AgonDev control or explain
    every difference with scripts. Qualify each cleanup, API/ABI expectations,
    startup/link/runtime contracts and relevant behavioral regressions. Preserve
    known tool limitations and respect human emulator/hardware gates.
+   Partial: all 102,055 ROM bytes and 512 public symbols match; all 16 C objects
+   match too. New migration/profile/comparison/source tests and shared provenance
+   checks pass. Human runtime qualification and broader regression review remain
+   open, so this item is not marked complete.
 7. [ ] **B005-07** — Deliver an immutable foundation selection and complete
    source/build/evidence handoff to the EMOS owner. Agree tag/release naming and
    adoption scope; no unqualified dependency change or automatic deployment.
@@ -86,6 +118,9 @@ explicitly authorized for commit/push. Do not publish the new repository publicl
    one production authority per tool, preserve frozen evidence and leave vendor
    tool bytes outside Git. This carries forward their unfinished generic-tool
    promotion rather than pursuing ZDS-only compaction.
+   Partial: local reusable migration, direct-build and exact-comparison tools
+   are implemented/tested, using existing runtime/provenance/link authorities.
+   Review/promotion and selection of any further BUILD-003/004 tooling remain.
 10. [ ] **B005-10** — After qualification/adoption, update actual onboarding and
     build instructions to native-source development; retain historical
     translation/reproduction support. Record acceptance/disposition and update

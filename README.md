@@ -8,9 +8,15 @@ The accepted direction is a separate, human-maintained AgonDev-native MOS
 foundation for future EMOS development, with upstream ancestry and documented
 reasons for local changes. Extender is the priority; experimental UART
 integration is deferred. Read the
-[native foundation policy](docs/native-foundation-policy.md) and
-[migration task](docs/tasks/BUILD-005.md). The native foundation is not yet
-implemented/qualified; current build instructions below remain applicable.
+[project policies](docs/POLICIES.md) and
+[migration task](docs/tasks/BUILD-005.md). The first native source/direct-build
+candidate exists in private
+[`bgates747/agon-mos-agondev`](https://github.com/bgates747/agon-mos-agondev).
+Its own `STARTHERE.md` covers direct editing; the
+[first-tranche report](research/build-005-2026-10-15.md) records exact stock
+control reproduction and remaining review/qualification gates. It is not an
+accepted release or an EMOS adoption. Instructions below retain the translation
+workflow, not the new fork's normal build.
 
 The currently implemented `mos-agondev` pipeline builds ZDS-oriented
 [`agon-mos`](https://github.com/AgonPlatform/agon-mos) source with the
@@ -120,9 +126,9 @@ still apply.
 
 ## Documentation map
 
-- [`docs/native-foundation-policy.md`](docs/native-foundation-policy.md) —
-  accepted native-source direction, readability, upstream traceability and
-  foundation/EMOS handoff requirements.
+- [`docs/POLICIES.md`](docs/POLICIES.md) — the consolidated policy authority:
+  native-source direction, provenance, canonical API reservations, shared
+  interface consumption, build/banner identity and qualification boundaries.
 - [`STARTHERE.md`](STARTHERE.md) — current setup and development workflow.
 - [`TODO.md`](TODO.md) — the only authoritative list of unfinished work.
 - [`docs/README.md`](docs/README.md) — current technical contracts and project

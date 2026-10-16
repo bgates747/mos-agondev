@@ -1,0 +1,496 @@
+{
+  "schema": 1,
+  "task": "BUILD-005",
+  "upstream_commit": "8336409351ee5314e02801a7b72a4f1bb5282519",
+  "repository": {
+    "nameWithOwner": "bgates747/agon-mos-agondev",
+    "visibility": "PRIVATE"
+  },
+  "native_head": "8336409351ee5314e02801a7b72a4f1bb5282519",
+  "implementation_uncommitted": true,
+  "binary_comparison": {
+    "schema": 1,
+    "binary_equal": true,
+    "native_binary_sha256": "f891721bbb2a0bc2845dbb13edbeb449365a315f11be48500d8e65e2ab1aebb4",
+    "reference_binary_sha256": "f891721bbb2a0bc2845dbb13edbeb449365a315f11be48500d8e65e2ab1aebb4",
+    "bytes": 102055,
+    "public_symbols_equal": true,
+    "public_symbol_count": 512,
+    "symbol_differences": {},
+    "native_elf_sha256": "bc75f9388b4136b58351bffe94a9d080255deab7fea106107967abb6fb0c10d7",
+    "reference_elf_sha256": "0ba255cc474321cda85c8ba05ee2a667787b3d201ae30a044d76869913411b18",
+    "emulator_qualified": false,
+    "hardware_qualified": false
+  },
+  "build": {
+    "schema": 1,
+    "status": "pass",
+    "rom_bytes": 102055,
+    "sha256": "f891721bbb2a0bc2845dbb13edbeb449365a315f11be48500d8e65e2ab1aebb4",
+    "reference_equal": true,
+    "emulator_qualified": false,
+    "hardware_qualified": false,
+    "elapsed_seconds": 13.035433627665043,
+    "steps": [
+      {
+        "name": "initialize-provenance",
+        "returncode": 0,
+        "elapsed_seconds": 0.10517974989488721
+      },
+      {
+        "name": "compile-main",
+        "returncode": 0,
+        "elapsed_seconds": 0.3936660811305046
+      },
+      {
+        "name": "compile-src-clock",
+        "returncode": 0,
+        "elapsed_seconds": 0.3882155339233577
+      },
+      {
+        "name": "compile-src-i2c",
+        "returncode": 0,
+        "elapsed_seconds": 0.3917565471492708
+      },
+      {
+        "name": "compile-src-mos",
+        "returncode": 0,
+        "elapsed_seconds": 0.8433785610832274
+      },
+      {
+        "name": "compile-src-mos_editor",
+        "returncode": 0,
+        "elapsed_seconds": 0.4604323338717222
+      },
+      {
+        "name": "compile-src-mos_file",
+        "returncode": 0,
+        "elapsed_seconds": 0.4365921840071678
+      },
+      {
+        "name": "compile-src-mos_sysvars",
+        "returncode": 0,
+        "elapsed_seconds": 0.4914763253182173
+      },
+      {
+        "name": "compile-src-strings",
+        "returncode": 0,
+        "elapsed_seconds": 0.3910945290699601
+      },
+      {
+        "name": "compile-src-tests",
+        "returncode": 0,
+        "elapsed_seconds": 0.37186354026198387
+      },
+      {
+        "name": "compile-src-timer",
+        "returncode": 0,
+        "elapsed_seconds": 0.3664764929562807
+      },
+      {
+        "name": "compile-src-uart",
+        "returncode": 0,
+        "elapsed_seconds": 0.39199725072830915
+      },
+      {
+        "name": "compile-src_fatfs-diskio",
+        "returncode": 0,
+        "elapsed_seconds": 0.38038528710603714
+      },
+      {
+        "name": "compile-src_fatfs-ff",
+        "returncode": 0,
+        "elapsed_seconds": 0.9063895982690156
+      },
+      {
+        "name": "compile-src_fatfs-ffsystem",
+        "returncode": 0,
+        "elapsed_seconds": 0.36526725394651294
+      },
+      {
+        "name": "compile-src_fatfs-ffunicode",
+        "returncode": 0,
+        "elapsed_seconds": 0.42064735712483525
+      },
+      {
+        "name": "compile-src_umm_malloc-umm_malloc",
+        "returncode": 0,
+        "elapsed_seconds": 0.517577453982085
+      },
+      {
+        "name": "assemble-src-crash",
+        "returncode": 0,
+        "elapsed_seconds": 0.2637030528858304
+      },
+      {
+        "name": "assemble-src-gpio",
+        "returncode": 0,
+        "elapsed_seconds": 0.19846889097243547
+      },
+      {
+        "name": "assemble-src-interrupts",
+        "returncode": 0,
+        "elapsed_seconds": 0.21344459103420377
+      },
+      {
+        "name": "assemble-src-keyboard",
+        "returncode": 0,
+        "elapsed_seconds": 0.21370908990502357
+      },
+      {
+        "name": "assemble-src-misc",
+        "returncode": 0,
+        "elapsed_seconds": 0.2337399129755795
+      },
+      {
+        "name": "assemble-src-mos_api",
+        "returncode": 0,
+        "elapsed_seconds": 0.20724143320694566
+      },
+      {
+        "name": "assemble-src-rtc",
+        "returncode": 0,
+        "elapsed_seconds": 0.18935649702325463
+      },
+      {
+        "name": "assemble-src-sd",
+        "returncode": 0,
+        "elapsed_seconds": 0.1864251308143139
+      },
+      {
+        "name": "assemble-src-serial",
+        "returncode": 0,
+        "elapsed_seconds": 0.1953323958441615
+      },
+      {
+        "name": "assemble-src-spi",
+        "returncode": 0,
+        "elapsed_seconds": 0.23337754188105464
+      },
+      {
+        "name": "assemble-src-vdp_protocol",
+        "returncode": 0,
+        "elapsed_seconds": 0.25221212627366185
+      },
+      {
+        "name": "assemble-src_startup-cstartup",
+        "returncode": 0,
+        "elapsed_seconds": 0.18595251999795437
+      },
+      {
+        "name": "assemble-src_startup-globals",
+        "returncode": 0,
+        "elapsed_seconds": 0.18520518811419606
+      },
+      {
+        "name": "assemble-src_startup-init_params_f92",
+        "returncode": 0,
+        "elapsed_seconds": 0.2438970827497542
+      },
+      {
+        "name": "assemble-src_startup-vectors16",
+        "returncode": 0,
+        "elapsed_seconds": 0.19622554210945964
+      },
+      {
+        "name": "compile-runtime-firmware_printf",
+        "returncode": 0,
+        "elapsed_seconds": 0.5100067616440356
+      },
+      {
+        "name": "assemble-runtime-i48_required",
+        "returncode": 0,
+        "elapsed_seconds": 0.17306444700807333
+      },
+      {
+        "name": "i48-equivalence",
+        "returncode": 0,
+        "elapsed_seconds": 0.08318832097575068
+      },
+      {
+        "name": "runtime-link-probe",
+        "returncode": 0,
+        "elapsed_seconds": 0.004547362681478262
+      },
+      {
+        "name": "format-scan",
+        "returncode": 0,
+        "elapsed_seconds": 0.1614466500468552
+      },
+      {
+        "name": "host-formatter-compile",
+        "returncode": 0,
+        "elapsed_seconds": 0.07319692801684141
+      },
+      {
+        "name": "host-formatter-run",
+        "returncode": 0,
+        "elapsed_seconds": 0.0006679617799818516
+      },
+      {
+        "name": "assemble-hostfs_descriptor",
+        "returncode": 0,
+        "elapsed_seconds": 0.18921571969985962
+      },
+      {
+        "name": "link-firmware",
+        "returncode": 0,
+        "elapsed_seconds": 0.3474582443013787
+      },
+      {
+        "name": "objcopy-bin",
+        "returncode": 0,
+        "elapsed_seconds": 0.002096868120133877
+      },
+      {
+        "name": "objcopy-hex",
+        "returncode": 0,
+        "elapsed_seconds": 0.0023114969953894615
+      },
+      {
+        "name": "verify-firmware",
+        "returncode": 0,
+        "elapsed_seconds": 0.11318485112860799
+      }
+    ],
+    "verified_register_aliases": [
+      "PB_ALT1",
+      "PB_ALT2",
+      "PB_DDR",
+      "PB_DR",
+      "PC_ALT1",
+      "PC_ALT2",
+      "PC_DDR",
+      "PC_DR",
+      "PD_ALT1",
+      "PD_ALT2",
+      "PD_DDR",
+      "PD_DR",
+      "TMR0_CTL",
+      "TMR0_DR_H",
+      "TMR0_DR_L",
+      "TMR0_RR_H",
+      "TMR0_RR_L",
+      "UART0_IVECT",
+      "UART1_IVECT"
+    ],
+    "inputs_sha256": "3acf2a67b6cbc2df7f8cbf5c773141a694237d89dba1c18c987f9c42829d24fd",
+    "source_identity": {
+      "head": "8336409351ee5314e02801a7b72a4f1bb5282519",
+      "dirty": true
+    }
+  },
+  "c_objects": [
+    {
+      "path": "main.o",
+      "equal": true,
+      "sha256": "28cf57174ba3a9822df7fab46b04fa0aa30d90b7836282e3b52997b759c8d549"
+    },
+    {
+      "path": "src/clock.o",
+      "equal": true,
+      "sha256": "a5e0602052d9a232d2f1d5f3e4db29b83568893824b5b94c3ed7cc1f59d6b87f"
+    },
+    {
+      "path": "src/i2c.o",
+      "equal": true,
+      "sha256": "9ba1658db83d6078e97cd97fd0dcd5385f9b040ac74b9c32fd400b71ac42bb82"
+    },
+    {
+      "path": "src/mos.o",
+      "equal": true,
+      "sha256": "f6bd78c82d4fb36543217cc7163ff700ad0db1be6a824d4ca39257b6ef1555e4"
+    },
+    {
+      "path": "src/mos_editor.o",
+      "equal": true,
+      "sha256": "fa5196ba52f17fec0448d04689112f084d4fd8f667b6a393c4ab9b74112ffeac"
+    },
+    {
+      "path": "src/mos_file.o",
+      "equal": true,
+      "sha256": "3792a631b9f04101cafd48deeb6984af9b078906a76db15d014d4f05f7c6b061"
+    },
+    {
+      "path": "src/mos_sysvars.o",
+      "equal": true,
+      "sha256": "7c4adab6310baf58722b063c7f87a39c4bb59282f9e450903cfd02f516880a75"
+    },
+    {
+      "path": "src/strings.o",
+      "equal": true,
+      "sha256": "0467e6cd9a953c66bf9e4d0583c687ca214579cc0b65e3dfea0258bc3cd0de05"
+    },
+    {
+      "path": "src/tests.o",
+      "equal": true,
+      "sha256": "fadc228bcda9b6cf2899b6356fa3d1ce8d8fd82e1377e7883cb2da0c54d7f2a6"
+    },
+    {
+      "path": "src/timer.o",
+      "equal": true,
+      "sha256": "2945ae5586a2b6706b5e4620da4de9221081e0d7c9aa1b371b7163eaa929dfdf"
+    },
+    {
+      "path": "src/uart.o",
+      "equal": true,
+      "sha256": "4f80c690fe3a79acc3a65aa07310fee9914bbe1d3871735b873d3b184a1f14c4"
+    },
+    {
+      "path": "src_fatfs/diskio.o",
+      "equal": true,
+      "sha256": "492c32d74779bfe4569e583bfcfacb28eefbefbc549bf4fd05b5c98d4823e86d"
+    },
+    {
+      "path": "src_fatfs/ff.o",
+      "equal": true,
+      "sha256": "ba7bc75b8bc125f7e6f913907e7e9f9b7b583ce8fe0eaadd9d0815597e08c341"
+    },
+    {
+      "path": "src_fatfs/ffsystem.o",
+      "equal": true,
+      "sha256": "92de4d06d45a70eef677cfdf01b60d94398b6901f4673f7a9598957e0cdde3e0"
+    },
+    {
+      "path": "src_fatfs/ffunicode.o",
+      "equal": true,
+      "sha256": "20c1f8189a631d9f2321a51f730fe982ee951ca43f80893ee40cc4f69153593b"
+    },
+    {
+      "path": "src_umm_malloc/umm_malloc.o",
+      "equal": true,
+      "sha256": "12f30191fd02a09430d41b7561d87317ec9dd018837bbb69e869a796662d2bb3"
+    }
+  ],
+  "assembly_include_files": 20,
+  "macro_mappings": [
+    {
+      "path": "src/crash.asm",
+      "upstream": "PUTS",
+      "native": "PUTS",
+      "upstream_line": 5
+    },
+    {
+      "path": "src/crash.asm",
+      "upstream": "PUTC",
+      "native": "PUTC",
+      "upstream_line": 12
+    },
+    {
+      "path": "src/keyboard.asm",
+      "upstream": "KEY",
+      "native": "KEY",
+      "upstream_line": 88
+    },
+    {
+      "path": "src/macros.inc",
+      "upstream": "ADD8U_HL",
+      "native": "ADD8U_HL",
+      "upstream_line": 21
+    },
+    {
+      "path": "src/macros.inc",
+      "upstream": "SET_GPIO",
+      "native": "SET_GPIO",
+      "upstream_line": 34
+    },
+    {
+      "path": "src/macros.inc",
+      "upstream": "RES_GPIO",
+      "native": "RES_GPIO",
+      "upstream_line": 45
+    },
+    {
+      "path": "src/macros.inc",
+      "upstream": "GET_GPIO",
+      "native": "GET_GPIO",
+      "upstream_line": 61
+    },
+    {
+      "path": "src/macros.inc",
+      "upstream": "TIMER_SET_BC",
+      "native": "TIMER_SET_BC",
+      "upstream_line": 70
+    },
+    {
+      "path": "src/macros.inc",
+      "upstream": "TIMER_SET",
+      "native": "TIMER_SET",
+      "upstream_line": 86
+    },
+    {
+      "path": "src/macros.inc",
+      "upstream": "TIMER_START",
+      "native": "TIMER_START",
+      "upstream_line": 98
+    },
+    {
+      "path": "src/macros.inc",
+      "upstream": "TIMER_RESET",
+      "native": "TIMER_RESET",
+      "upstream_line": 111
+    },
+    {
+      "path": "src/macros.inc",
+      "upstream": "TIMER_EXP?",
+      "native": "TIMER_EXP",
+      "upstream_line": 127
+    },
+    {
+      "path": "src/macros.inc",
+      "upstream": "TIMER_WAIT",
+      "native": "TIMER_WAIT",
+      "upstream_line": 140
+    },
+    {
+      "path": "src/macros.inc",
+      "upstream": "DELAY_MS",
+      "native": "DELAY_MS",
+      "upstream_line": 151
+    },
+    {
+      "path": "src/mos_api.inc",
+      "upstream": "MOSCALL",
+      "native": "MOSCALL",
+      "upstream_line": 295
+    },
+    {
+      "path": "src_startup/vectors16.asm",
+      "upstream": "SAVEIMASK",
+      "native": "SAVEIMASK",
+      "upstream_line": 46
+    },
+    {
+      "path": "src_startup/vectors16.asm",
+      "upstream": "RESTOREIMASK",
+      "native": "RESTOREIMASK",
+      "upstream_line": 54
+    }
+  ],
+  "local_symbol_mappings": 113,
+  "initial_map_sha256": "baaa1ea4a0d1fb3b04ed5ec5057de1060504ddb7f019154252fecfb7c3e48ab7",
+  "upstream_files_sha256": "574c643d7179c34076a25199fd96b5539dcd6babc79d3107170b34782707ecb1",
+  "native_helpers": {
+    "projects/native-foundation/migrate.py": "2e8c416ee71bc75154b486a7ceb551bb02a515281a22efd0f83c23498e53b009",
+    "projects/native-foundation/compare.py": "1f5d2099349d0712914a45fbec558f0f26d0e850d9e667856bf23291ac4c4917",
+    "projects/native-foundation/build.py": "d4c03c7143c958f9a82655490cd53333ac9de4eebad28064ac264e80624c4009"
+  },
+  "scope": {
+    "emulator_run": false,
+    "hardware_run": false,
+    "emos_adoption": false,
+    "uart_included": false,
+    "release_tag_created": false
+  },
+  "tests": {
+    "native_migration_profile_comparison": 19,
+    "native_source": 6,
+    "shared_target_provenance": 20,
+    "shared_source_profile": 4
+  },
+  "supporting_controls": {
+    "mechanical": "mechanical-build-03/result.json",
+    "readable": "readable-build/result.json",
+    "native": "../../agon-mos-agondev/.build/first-tranche-proof/result.json"
+  }
+}

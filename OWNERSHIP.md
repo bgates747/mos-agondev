@@ -3,7 +3,7 @@
 This repository is the reusable AgonDev build and qualification environment
 for MOS-family source. Its currently implemented pipeline accepts maintained
 ZDS-oriented source; the accepted native-foundation transition is described in
-[project policy](docs/native-foundation-policy.md). It is not a MOS product fork.
+[project policies](docs/POLICIES.md). It is not a MOS product fork.
 
 The mos-agondev agent leads generic native-foundation migration/qualification
 in a separate firmware repository. That responsibility does not transfer

@@ -4,10 +4,11 @@ This directory contains current contracts and durable maintenance references.
 It does not contain fresh-clone instructions, the authoritative task list, or
 the original feasibility narrative.
 
-- `docs/native-foundation-policy.md` records the accepted AgonDev-native
-  direction, human-readable source/upstream provenance requirements and the
-  foundation-to-EMOS handoff. Current translation instructions remain valid
-  until native qualification/adoption.
+- [Project policies](POLICIES.md) is the consolidated policy authority for
+  native source, canonical API definitions/reservations, firmware/interface
+  identity and qualification. Ownership agreements and technical specifications
+  remain linked authorities for their own scopes. The former
+  `native-foundation-policy.md` is a compatibility redirect, not a second policy.
 - `docs/assembly-compatibility-strategy.md` defines the maintained ZDS-oriented
   language, strict translation behavior, diagnostics, and generated-source
   boundary.
@@ -18,6 +19,10 @@ the original feasibility narrative.
 - `docs/port-200-qualification.md` records the completed generic portability,
   ABI, emulator, and public-input improvements retained from PORT-200.
 - `projects/mos-port/README.md` describes the current firmware build.
+- `projects/native-foundation/README.md` separates one-time migration, direct
+  native building and exact control comparison. Its first-tranche implementation
+  remains a review candidate; native source instructions belong to the private
+  agon-mos-agondev repository.
 - `projects/mos-port/asm/README.md` documents the implemented assembly frontend.
 - `projects/mos-port/ld/README.md` documents the firmware linker contract.
 - `projects/mos-port/runtime/README.md` documents the restricted runtime.

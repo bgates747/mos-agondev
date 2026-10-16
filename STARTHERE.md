@@ -2,14 +2,19 @@
 
 The Author has selected a **human-maintained AgonDev-native MOS foundation**
 for future EMOS development. Read the
-[accepted policy](docs/native-foundation-policy.md) for source readability,
+[accepted policies](docs/POLICIES.md) for source readability,
 upstream traceability, ownership and the Extender-first priority. Migration is
 tracked in [BUILD-005](docs/tasks/BUILD-005.md); UART integration is deferred.
 
-The native foundation is not implemented/qualified yet. The instructions below
-describe the **currently implemented translation workflow**, where ZDS-oriented
-source is maintained and GNU-as output is disposable. Do not hand-edit those
-generated files or mistake them for the new maintained fork.
+The first native candidate now exists in private
+[`bgates747/agon-mos-agondev`](https://github.com/bgates747/agon-mos-agondev);
+use its `STARTHERE.md` to edit/build native source directly. The
+[first-tranche report](research/build-005-2026-10-15.md) records its matching
+offline control and remaining review/runtime gates. It is not yet a qualified
+release or an adopted EMOS foundation. The instructions below describe the
+**retained translation workflow**, where ZDS-oriented source is maintained and
+GNU-as output is disposable. Do not hand-edit those generated files or run
+preparation/translation over the maintained native fork.
 
 > **Important compatibility limit:** `zds2gas.py` is not a complete ZDS II
 > assembler, nor was it built from an exhaustive survey of every ZDS II
@@ -362,7 +367,7 @@ drives active product development.
 
 Human-readable modules/macros/local labels and documented upstream origins and
 deviations are acceptance requirements, not optional cleanup. See the
-[policy](docs/native-foundation-policy.md) for the complete contract. Existing
+[policies](docs/POLICIES.md) for the complete contract. Existing
 `projects/mos-port/worktree` and `generated` remain disposable; editing them
 does not create the maintained fork. Continue using the current executable
 workflow until the new native build and downstream adoption are qualified.

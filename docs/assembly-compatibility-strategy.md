@@ -3,6 +3,12 @@
 Status: strict compatibility frontend accepted for ongoing use
 Decision owner: project author, delegating the initial technical choice to Codex
 
+This is the technical strategy for the retained translation pipeline.
+[POLICIES.md](POLICIES.md) owns current development policy; its native-source
+direction supersedes a requirement to keep ZDS-oriented source authoritative
+for the new maintained foundation. The frontend contract below remains valid
+for legacy reproduction and explicitly selected translation builds.
+
 Scope disclaimer: this strategy does not claim general ZDS II compatibility.
 The implemented frontend is empirical and corpus-driven: it covers the syntax
 observed in maintained MOS plus explicitly tested public-include forms. The ZDS

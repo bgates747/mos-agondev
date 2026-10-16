@@ -13,7 +13,10 @@ runtime, candidate profiles, qualification evidence, or task ownership.
 
 ## Accepted development direction
 
-Read `docs/native-foundation-policy.md` before new MOS-family source work.
+Read `docs/POLICIES.md` before new MOS-family source or interface work. It is
+the consolidated policy authority, including canonical API reservations and
+firmware/banner/interface build identity; those additions are not implemented
+merely because the policy is accepted.
 The Author selected a separate, human-maintained AgonDev-native MOS foundation
 for future EMOS development on 2026-10-15, superseding the native-ZDS-required
 direction. Preserve upstream ancestry, recognizable source/macros and readable
@@ -22,9 +25,14 @@ and EMOS take priority; experimental UART integration is deferred.
 
 `BUILD-005` owns migration coordination. This repository remains reusable
 infrastructure, not the maintained firmware fork. Cross-owner changes follow
-the central foundation contract. The native source/build is not implemented or
-qualified yet: existing prepared/generated source remains disposable, and the
-instructions below still describe the currently implemented translation build.
+the central foundation contract. A direct native-source/build candidate now
+exists in private `bgates747/agon-mos-agondev`; its first offline tranche
+reproduces the pinned stock AgonDev control. Candidate commit selections and
+qualification progress are tracked in BUILD-005; it is not an accepted release
+or an adopted EMOS dependency. Use that repository's
+STARTHERE for native development, never preparation/translation over its source.
+Existing prepared/generated source here remains disposable; the instructions
+below describe the retained translation build.
 
 ## Current state
 

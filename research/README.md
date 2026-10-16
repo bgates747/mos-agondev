@@ -22,6 +22,9 @@ contracts are indexed by `docs/README.md`. The only unfinished-work list is
 2. [Stock MOS, EMOS and UART matrix](build-004-2026-10-15.md) separates
    source-feature costs from compiler/profile costs; EMOS-UART integration is
    still absent. Qualification boundaries and remaining work are in `TODO.md`.
+3. [Native MOS foundation first tranche](build-005-2026-10-15.md) records
+   readable maintained source, direct builds and exact offline equivalence;
+   it is not an EMOS adoption or runtime qualification.
 
 ## Exact baseline reproduction
 
